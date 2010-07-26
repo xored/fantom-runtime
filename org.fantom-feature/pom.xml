@@ -9,6 +9,6 @@
   </parent>
   <groupId>org.fantom</groupId>
   <artifactId>org.fantom</artifactId>
-  <version>1.0.52.xored</version>
+  <version>1.0.52.qualifier</version>
   <packaging>eclipse-feature</packaging>
 </project>
