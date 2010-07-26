@@ -8,7 +8,7 @@
     <version>0.0.1-SNAPSHOT</version>
   </parent>
   <groupId>org.fantom</groupId>
-  <artifactId>org.fantom</artifactId>
-  <version>1.0.52.qualifier</version>
+  <artifactId>org.fantom-feature</artifactId>
+  <version>1.0.52-SNAPSHOT</version>
   <packaging>eclipse-feature</packaging>
 </project>

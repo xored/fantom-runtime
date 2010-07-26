@@ -20,15 +20,13 @@
          id="org.fantom.compiler"
          download-size="0"
          install-size="0"
-         version="0.0.0"
-         unpack="false"/>
+         version="0.0.0"/>
 
    <plugin
          id="org.fantom.compilerJava"
          download-size="0"
          install-size="0"
-         version="0.0.0"
-         unpack="false"/>
+         version="0.0.0"/>
 
    <plugin
          id="org.fantom.compilerJs"
@@ -52,8 +50,7 @@
          id="org.fantom.fwt"
          download-size="0"
          install-size="0"
-         version="0.0.0"
-         unpack="false"/>
+         version="0.0.0"/>
 
    <plugin
          id="org.fantom.gfx"
@@ -65,11 +62,16 @@
          id="org.fantom.sys"
          download-size="0"
          install-size="0"
-         version="0.0.0"
-         unpack="false"/>
+         version="0.0.0"/>
 
    <plugin
          id="com.xored.fantom.classfile"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
+
+   <plugin
+         id="org.fantom"
          download-size="0"
          install-size="0"
          version="0.0.0"
