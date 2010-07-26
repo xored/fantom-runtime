@@ -1,0 +1,8 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: CompilerJava
+Bundle-SymbolicName: org.fantom.compilerJava;singleton:=true
+Bundle-Version: 1.0.0.qualifier
+Require-Bundle: org.fantom.sys;bundle-version="1.0.52",
+ org.fantom.compiler;bundle-version="1.0.0",
+ com.xored.fantom.classfile;bundle-version="1.0.0"

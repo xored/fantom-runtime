@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension point="org.fantom.pod">
+      <pod location="/lib/fan/sys.pod" name="sys"/>
+   </extension>
+   <extension point="org.fantom.install">
+      <install name="Fantom 1.0.52" class="org.fantom.internal.sys.FantomInstall"/>
+   </extension>
+</plugin>
