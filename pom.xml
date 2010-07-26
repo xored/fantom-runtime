@@ -9,6 +9,7 @@
   <modules>
     <module>com.xored.fantom.classfile</module>
     <module>org.fantom</module>
+    <module>org.fantom-feature</module>
     <module>org.fantom.compiler</module>
     <module>org.fantom.compilerJava</module>
     <module>org.fantom.compilerJs</module>
