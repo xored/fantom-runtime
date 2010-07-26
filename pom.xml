@@ -10,6 +10,7 @@
     <module>com.xored.fantom.classfile</module>
     <module>org.fantom</module>
     <module>org.fantom-feature</module>
+    <module>org.fantom-updatesite</module>
     <module>org.fantom.compiler</module>
     <module>org.fantom.compilerJava</module>
     <module>org.fantom.compilerJs</module>
@@ -19,38 +20,14 @@
     <module>org.fantom.gfx</module>
     <module>org.fantom.sys</module>
   </modules>
-  
-	<repositories>
-		<repository>
-			<id>helios</id>
-			<layout>p2</layout>
-			<url>http://download.eclipse.org/releases/helios/</url>
-		</repository>
-		<!-- repository>
-			<id>galileoTest</id>
-			<layout>p2</layout>
-			<url>file:/Users/Pascal/Downloads/eclipse-testing/eclipse-junit-tests-I20100312-0800</url>
-		</repository -->
-	</repositories>
-  
   <build>
-		<plugins>
-			<plugin>
-				<groupId>org.sonatype.tycho</groupId>
-				<artifactId>tycho-maven-plugin</artifactId>
-				<version>0.9.0</version>
-				<extensions>true</extensions>
-			</plugin>
-			
-			<plugin>
-				<groupId>org.sonatype.tycho</groupId>
-				<artifactId>target-platform-configuration</artifactId>
-				<version>0.9.0</version>
-				<configuration>
-					<resolver>p2</resolver>
-				</configuration>
-			</plugin>
-			
-		</plugins>
+    <plugins>
+      <plugin>
+        <groupId>org.sonatype.tycho</groupId>
+        <artifactId>tycho-maven-plugin</artifactId>
+        <version>0.9.0</version>
+        <extensions>true</extensions>
+      </plugin>
+    </plugins>
   </build>
 </project>
