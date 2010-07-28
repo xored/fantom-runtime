@@ -3,4 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Fantom wisp mod
 Bundle-SymbolicName: org.fantom.wisp;singleton:=true
 Bundle-Version: 1.0.54.qualifier
-Require-Bundle: org.fantom.sys;bundle-version="1.0.52"
+Require-Bundle: org.fantom.sys;bundle-version="1.0.52",
+ org.fantom.concurrent;bundle-version="1.0.0",
+ org.fantom.inet;bundle-version="1.0.54",
+ org.fantom.web;bundle-version="1.0.54"
