@@ -1,0 +1,6 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Fantom util pod
+Bundle-SymbolicName: org.fantom.util;singleton:=true
+Bundle-Version: 1.0.54.qualifier
+Require-Bundle: org.fantom.sys;bundle-version="1.0.52"
