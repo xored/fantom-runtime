@@ -77,4 +77,34 @@
          version="0.0.0"
          unpack="false"/>
 
+   <plugin
+         id="org.fantom.web"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
+
+   <plugin
+         id="org.fantom.webmod"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
+
+   <plugin
+         id="org.fantom.inet"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
+
+   <plugin
+         id="org.fantom.wisp"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
+
+   <plugin
+         id="org.fantom.util"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
+
 </feature>
