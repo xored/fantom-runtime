@@ -20,6 +20,7 @@
     <module>org.fantom.gfx</module>
     <module>org.fantom.inet</module>
     <module>org.fantom.sys</module>
+    <module>org.fantom.util</module>
     <module>org.fantom.web</module>
     <module>org.fantom.webmod</module>
     <module>org.fantom.wisp</module>
