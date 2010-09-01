@@ -306,6 +306,8 @@ public class FanUtil
    */
   public static String toJavaTypeSig(Type t)
   {
+    if (t.pod() == null)
+      return toJavaTypeSig(((JavaType)t).podName(),t.name(),t.isNullable());
     return toJavaTypeSig(t.pod().name(), t.name(), t.isNullable());
   }
 
