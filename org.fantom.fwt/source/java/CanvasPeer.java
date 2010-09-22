@@ -35,7 +35,7 @@ public class CanvasPeer
 
   public Widget create(Widget parent)
   {
-    Canvas c = new Canvas((Composite)parent, 0)
+    Canvas c = new Canvas((Composite)parent, SWT.NO_BACKGROUND)
     {
       public void drawBackground(GC gc, int x, int y, int w, int h) {}
     };
@@ -43,17 +43,17 @@ public class CanvasPeer
     return c;
   }
 
-  private Rect dirtyRect;
+//  private Rect dirtyRect;
 
-  public Rect dirty(fan.fwt.Canvas self) {
-    return dirtyRect;
-  }
+//  public Rect dirty(fan.fwt.Canvas self) {
+//    return dirtyRect;
+//  }
 
   public void paintControl(PaintEvent e)
   {
     FwtGraphics g = new FwtGraphics(e.gc);
-    dirtyRect = Rect.make(e.x, e.y, e.width, e.height);
-    ((fan.fwt.Canvas)self).onPaint(g);
+  //  dirtyRect = Rect.make(e.x, e.y, e.width, e.height);  
+    ((fan.fwt.Canvas)self).onPaint(g, e.x, e.y, e.width, e.height);
   }
 
 }
