@@ -75,10 +75,10 @@ public class RichTextPeer
 
     // this is a hack, but seems to be the only way to set
     // the margins hidden away as private fields in StyledText
-    setField(t, "leftMargin",   8);
+    setField(t, "leftMargin",   0);
     setField(t, "topMargin",    0);
-    setField(t, "rightMargin",  8);
-    setField(t, "bottomMargin", 8);
+    setField(t, "rightMargin",  0);
+    setField(t, "bottomMargin", 0);
 
     // add myself as key/mouse listener for caret movement
     t.addKeyListener(new KeyAdapter()
@@ -112,6 +112,15 @@ public class RichTextPeer
 //////////////////////////////////////////////////////////////////////////
 // Fields
 //////////////////////////////////////////////////////////////////////////
+  
+  public boolean caretVisible(RichText w) { return ((StyledText)control).getCaret().isVisible(); }
+  public void caretVisible(RichText w, boolean v) {
+    StyledText styled = (StyledText)control;
+    if (styled == null)
+	return;
+    Caret caret = styled.getCaret();
+    caret.setVisible(v);
+  }
 
   Prop.IntProp caretOffset() { return caretOffset; }
   public final Prop.IntProp caretOffset = new Prop.IntProp(this, 0)
@@ -130,7 +139,7 @@ public class RichTextPeer
           try
           {
             ((StyledText)w).setCaretOffset(v);
-            checkCaretPos();
+	    checkCaretPos();
           }
           catch (SWTException e) {}
         }

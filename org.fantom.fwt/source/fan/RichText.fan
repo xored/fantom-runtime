@@ -127,6 +127,12 @@ class RichText : TextWidget
   **
   native Int tabSpacing
 
+
+  **
+  ** Show or hide the caret
+  **
+  native Bool caretVisible
+
   **
   ** The zero based line index which is currently at the
   ** top of the scrolling viewport.
