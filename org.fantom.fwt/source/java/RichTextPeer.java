@@ -117,7 +117,12 @@ public class RichTextPeer
     StyledText styled = (StyledText)control;
     return size(styled.getClientArea().width, styled.getClientArea().height);
   }
-  
+
+  public long defaultLineHeight(RichText w) {
+    StyledText styled = (StyledText)control;
+    return styled.getLineHeight();
+  }
+
   public boolean caretVisible(RichText w) { return ((StyledText)control).getCaret().isVisible(); }
   public void caretVisible(RichText w, boolean v) {
     StyledText styled = (StyledText)control;
