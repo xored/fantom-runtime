@@ -112,6 +112,11 @@ public class RichTextPeer
 //////////////////////////////////////////////////////////////////////////
 // Fields
 //////////////////////////////////////////////////////////////////////////
+
+  public fan.gfx.Size clientSize(RichText w) {
+    StyledText styled = (StyledText)control;
+    return size(styled.getClientArea().width, styled.getClientArea().height);
+  }
   
   public boolean caretVisible(RichText w) { return ((StyledText)control).getCaret().isVisible(); }
   public void caretVisible(RichText w, boolean v) {
