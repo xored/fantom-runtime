@@ -1,0 +1,280 @@
+### Eclipse Workspace Patch 1.0
+#P org.fantom.fwt
+Index: source/fan/Canvas.fan
+===================================================================
+RCS file: /cvsroot/fantom/runtime/org.fantom.fwt/source/fan/Canvas.fan,v
+retrieving revision 1.2.2.1
+diff -u -r1.2.2.1 Canvas.fan
+--- source/fan/Canvas.fan	27 Oct 2010 06:14:05 -0000	1.2.2.1
++++ source/fan/Canvas.fan	27 Oct 2010 06:27:07 -0000
+@@ -22,7 +22,9 @@
+   ** with the clip bounds set to the widget's size.
+   **
+   **
+-  virtual Void onPaint(Graphics g) {}
++  virtual Void onPaint(Graphics g, Int x, Int y, Int w, Int h) {}
++
++//  public native Rect? dirty()
+ 
+   // to force native peer
+   private native Void dummyCanvas()
+Index: source/fan/FwtEnv.fan
+===================================================================
+RCS file: /cvsroot/fantom/runtime/org.fantom.fwt/source/fan/FwtEnv.fan,v
+retrieving revision 1.1.2.1
+diff -u -r1.1.2.1 FwtEnv.fan
+--- source/fan/FwtEnv.fan	27 Oct 2010 06:14:05 -0000	1.1.2.1
++++ source/fan/FwtEnv.fan	27 Oct 2010 06:27:07 -0000
+@@ -23,5 +23,8 @@
+   override native Int fontDescent(Font f)
+   override native Int fontLeading(Font f)
+   override native Int fontWidth(Font f, Str s)
++  override native Image fontImage(Font f, Str s, Color fg, Color bg)
++  override native Graphics getImageGraphics(Image image)
++  override native Image createImage(Size size)
+ 
+ }
+\ No newline at end of file
+Index: source/fan/RichText.fan
+===================================================================
+RCS file: /cvsroot/fantom/runtime/org.fantom.fwt/source/fan/RichText.fan,v
+retrieving revision 1.4.2.1
+diff -u -r1.4.2.1 RichText.fan
+--- source/fan/RichText.fan	27 Oct 2010 06:14:05 -0000	1.4.2.1
++++ source/fan/RichText.fan	27 Oct 2010 06:27:07 -0000
+@@ -127,6 +127,12 @@
+   **
+   native Int tabSpacing
+ 
++
++  **
++  ** Show or hide the caret
++  **
++  native Bool caretVisible
++
+   **
+   ** The zero based line index which is currently at the
+   ** top of the scrolling viewport.
+@@ -142,6 +148,18 @@
+     set { model.text = it }
+   }
+ 
++  **
++  ** Returns a rectangle which describes the area of the
++  ** receiver which is capable of displaying data (that is,
++  ** not covered by the "trimmings").
++  **
++  native Size clientSize()
++
++  **
++  ** Returns the default line height.
++  **
++  native Int defaultLineHeight()
++
+ //////////////////////////////////////////////////////////////////////////
+ // Utils
+ //////////////////////////////////////////////////////////////////////////
+Index: source/java/CanvasPeer.java
+===================================================================
+RCS file: /cvsroot/fantom/runtime/org.fantom.fwt/source/java/CanvasPeer.java,v
+retrieving revision 1.2.2.1
+diff -u -r1.2.2.1 CanvasPeer.java
+--- source/java/CanvasPeer.java	27 Oct 2010 06:14:05 -0000	1.2.2.1
++++ source/java/CanvasPeer.java	27 Oct 2010 06:27:07 -0000
+@@ -35,7 +35,7 @@
+ 
+   public Widget create(Widget parent)
+   {
+-    Canvas c = new Canvas((Composite)parent, 0)
++    Canvas c = new Canvas((Composite)parent, SWT.NO_BACKGROUND)
+     {
+       public void drawBackground(GC gc, int x, int y, int w, int h) {}
+     };
+@@ -43,10 +43,17 @@
+     return c;
+   }
+ 
++//  private Rect dirtyRect;
++
++//  public Rect dirty(fan.fwt.Canvas self) {
++//    return dirtyRect;
++//  }
++
+   public void paintControl(PaintEvent e)
+   {
+     FwtGraphics g = new FwtGraphics(e.gc);
+-    ((fan.fwt.Canvas)self).onPaint(g);
++  //  dirtyRect = Rect.make(e.x, e.y, e.width, e.height);  
++    ((fan.fwt.Canvas)self).onPaint(g, e.x, e.y, e.width, e.height);
+   }
+ 
+ }
+\ No newline at end of file
+Index: source/java/Fwt.java
+===================================================================
+RCS file: /cvsroot/fantom/runtime/org.fantom.fwt/source/java/Fwt.java,v
+retrieving revision 1.1.2.1
+diff -u -r1.1.2.1 Fwt.java
+--- source/java/Fwt.java	27 Oct 2010 06:14:05 -0000	1.1.2.1
++++ source/java/Fwt.java	27 Oct 2010 06:27:07 -0000
+@@ -45,8 +45,9 @@
+    */
+   public static Fwt main()
+   {
+-    if (mainFwt == null) throw new IllegalStateException("Main UI thread not running");
+-    return mainFwt;
++//    if (mainFwt == null) throw new IllegalStateException("Main UI thread not running");
++  //  return mainFwt;
++    return get();
+   }
+ 
+   private static volatile Fwt mainFwt;
+@@ -368,7 +369,7 @@
+ // Fields
+ //////////////////////////////////////////////////////////////////////////
+ 
+-  Display display = Display.getCurrent() == null ? new Display() : Display.getCurrent(); // SWT display
++  Display display = Display.getDefault(); // SWT display
+   HashMap colors = new HashMap();  // Int rgb   -> Color
+   HashMap fonts = new HashMap();   // fwt::Font  -> Font
+   HashMap images = new HashMap();  // Uri -> Image
+Index: source/java/FwtEnvPeer.java
+===================================================================
+RCS file: /cvsroot/fantom/runtime/org.fantom.fwt/source/java/FwtEnvPeer.java,v
+retrieving revision 1.1.2.1
+diff -u -r1.1.2.1 FwtEnvPeer.java
+--- source/java/FwtEnvPeer.java	27 Oct 2010 06:14:05 -0000	1.1.2.1
++++ source/java/FwtEnvPeer.java	27 Oct 2010 06:27:07 -0000
+@@ -114,4 +114,37 @@
+     return gc;
+   }
+ 
++  public fan.gfx.Image fontImage(FwtEnv self, fan.gfx.Font f, String s, fan.gfx.Color fg, fan.gfx.Color bg)
++  {
++    Fwt fwt = Fwt.get();
++    long width = fontWidth(self, f, s);
++    if (width == 0)
++	width = fontWidth(self, f, "?") * s.length();
++    Image img = new Image(fwt.display, (int)width, (int)fontHeight(self, f));
++    GC gc = new GC(img);
++    gc.setFont(fwt.font(f));
++    gc.setForeground(fwt.color(fg));
++    gc.setBackground(fwt.color(bg));
++    gc.drawText(s, 0, 0, SWT.DRAW_DELIMITER | SWT.DRAW_TAB);// | SWT.DRAW_TRANSPARENT);
++    Uri uri = Uri.fromStr("mem-" + Uuid.make());
++    fan.gfx.Image resultFan = fan.gfx.Image.makeUri(uri);
++    fwt.images.put(uri, img);
++    return resultFan;
++  }
++
++
++  public fan.gfx.Graphics getImageGraphics(FwtEnv self, fan.gfx.Image image) {
++    Fwt fwt = Fwt.get();
++    return new FwtGraphics(new GC(fwt.image(image)));
++  }
++  
++  public fan.gfx.Image createImage(FwtEnv self, fan.gfx.Size size) {
++    Fwt fwt = Fwt.get();
++    Image img = new Image(fwt.display, (int)size.w, (int)size.h);
++    Uri uri = Uri.fromStr("mem-" + Uuid.make());
++    fan.gfx.Image resultFan = fan.gfx.Image.makeUri(uri);
++    fwt.images.put(uri, img);
++    return resultFan;
++  }
++
+ }
+\ No newline at end of file
+Index: source/java/RichTextPeer.java
+===================================================================
+RCS file: /cvsroot/fantom/runtime/org.fantom.fwt/source/java/RichTextPeer.java,v
+retrieving revision 1.4.2.1
+diff -u -r1.4.2.1 RichTextPeer.java
+--- source/java/RichTextPeer.java	27 Oct 2010 06:14:05 -0000	1.4.2.1
++++ source/java/RichTextPeer.java	27 Oct 2010 06:27:07 -0000
+@@ -75,10 +75,10 @@
+ 
+     // this is a hack, but seems to be the only way to set
+     // the margins hidden away as private fields in StyledText
+-    setField(t, "leftMargin",   8);
++    setField(t, "leftMargin",   0);
+     setField(t, "topMargin",    0);
+-    setField(t, "rightMargin",  8);
+-    setField(t, "bottomMargin", 8);
++    setField(t, "rightMargin",  0);
++    setField(t, "bottomMargin", 0);
+ 
+     // add myself as key/mouse listener for caret movement
+     t.addKeyListener(new KeyAdapter()
+@@ -113,6 +113,25 @@
+ // Fields
+ //////////////////////////////////////////////////////////////////////////
+ 
++  public fan.gfx.Size clientSize(RichText w) {
++    StyledText styled = (StyledText)control;
++    return size(styled.getClientArea().width, styled.getClientArea().height);
++  }
++
++  public long defaultLineHeight(RichText w) {
++    StyledText styled = (StyledText)control;
++    return styled.getLineHeight();
++  }
++
++  public boolean caretVisible(RichText w) { return ((StyledText)control).getCaret().isVisible(); }
++  public void caretVisible(RichText w, boolean v) {
++    StyledText styled = (StyledText)control;
++    if (styled == null)
++	return;
++    Caret caret = styled.getCaret();
++    caret.setVisible(v);
++  }
++
+   Prop.IntProp caretOffset() { return caretOffset; }
+   public final Prop.IntProp caretOffset = new Prop.IntProp(this, 0)
+   {
+@@ -130,7 +149,7 @@
+           try
+           {
+             ((StyledText)w).setCaretOffset(v);
+-            checkCaretPos();
++	    checkCaretPos();
+           }
+           catch (SWTException e) {}
+         }
+Index: source/js/WidgetPeer.js
+===================================================================
+RCS file: /cvsroot/fantom/runtime/org.fantom.fwt/source/js/WidgetPeer.js,v
+retrieving revision 1.2.2.1
+diff -u -r1.2.2.1 WidgetPeer.js
+--- source/js/WidgetPeer.js	27 Oct 2010 06:14:05 -0000	1.2.2.1
++++ source/js/WidgetPeer.js	27 Oct 2010 06:27:07 -0000
+@@ -221,6 +221,30 @@
+   }
+ }
+ 
++fan.fwt.WidgetPeer.toKey = function(event)
++{
++  var key = fan.fwt.WidgetPeer.keyCodeToKey(event.keyCode);
++  if (event.shiftKey)   key = key.plus(fan.fwt.Key.m_shift);
++  if (event.altKey)     key = key.plus(fan.fwt.Key.m_alt);
++  if (event.ctrlKey)    key = key.plus(fan.fwt.Key.m_ctrl);
++  // TODO FIXIT
++  //if (event.commandKey) key = key.plus(Key.command);
++  return key;
++}
++
++fan.fwt.WidgetPeer.keyCodeToKey = function(keyCode)
++{
++  // TODO FIXIT: map rest of non-alpha keys
++  switch (keyCode)
++  {
++    case 38: return fan.fwt.Key.m_up;
++    case 40: return fan.fwt.Key.m_down;
++    case 37: return fan.fwt.Key.m_left;
++    case 39: return fan.fwt.Key.m_right;
++    default: return fan.fwt.Key.fromMask(keyCode);
++  }
++}
++
+ fan.fwt.WidgetPeer.prototype.checkKeyListeners = function(self) {}
+ 
+ fan.fwt.WidgetPeer.prototype.create = function(parentElem, self)

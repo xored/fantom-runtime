@@ -50,6 +50,14 @@ public abstract class Type
 
   public Type typeof() { return Sys.TypeType; }
 
+  public String podName() 
+  {
+    if(pod() == null)
+    {
+      int breakpoint = 1;
+    }
+    return pod().name(); 
+  }
   public abstract Pod pod();
   public abstract String name();
   public abstract String qname();
@@ -59,15 +67,16 @@ public abstract class Type
 // Flags
 //////////////////////////////////////////////////////////////////////////
 
-  public final boolean isAbstract() { return (flags() & FConst.Abstract) != 0; }
-  public final boolean isClass() { return (flags() & (FConst.Enum|FConst.Mixin)) == 0; }
-  public final boolean isConst() { return (flags() & FConst.Const) != 0; }
-  public final boolean isEnum() { return (flags() & FConst.Enum) != 0; }
-  public final boolean isFacet() { return (flags() & FConst.Facet) != 0; }
-  public final boolean isFinal() { return (flags() & FConst.Final) != 0; }
-  public final boolean isInternal() { return (flags() & FConst.Internal) != 0; }
-  public final boolean isMixin() { return (flags() & FConst.Mixin) != 0; }
-  public final boolean isPublic() { return (flags() & FConst.Public) != 0; }
+  public final boolean isAbstract()  { return (flags() & FConst.Abstract) != 0; }
+  public final boolean isClass()     { return (flags() & (FConst.Enum|FConst.Mixin)) == 0; }
+  public final boolean isConst()     { return (flags() & FConst.Const) != 0; }
+  public final boolean isEnum()      { return (flags() & FConst.Enum) != 0; }
+  public final boolean isFacet()     { return (flags() & FConst.Facet) != 0; }
+  public final boolean isFinal()     { return (flags() & FConst.Final) != 0; }
+  public final boolean isInternal()  { return (flags() & FConst.Internal) != 0; }
+  public final boolean isMixin()     { return (flags() & FConst.Mixin) != 0; }
+  public final boolean isNative()    { return (flags() & FConst.Native) != 0; }
+  public final boolean isPublic()    { return (flags() & FConst.Public) != 0; }
   public final boolean isSynthetic() { return (flags() & FConst.Synthetic) != 0; }
   abstract int flags();
 
@@ -75,6 +84,7 @@ public abstract class Type
   {
     // private undocumented access
     if (name.equals("flags")) return Long.valueOf(flags());
+    if (name.equals("toClass")) return toClass();
     return super.trap(name, args);
   }
 

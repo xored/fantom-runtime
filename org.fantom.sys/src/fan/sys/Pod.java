@@ -71,12 +71,12 @@ public class Pod
           // dependency check, keep track of what we are loading
           // via depends checking to prevent a cyclic dependency
           // from putting us into an infinite loop
-          if (resolving == null) resolving = new HashMap();
-          resolving.put(name, name);
+          HashMap thisResolving = new HashMap();
+          thisResolving.put(name, name);
           for (int i=0; i<fpod.depends.length; ++i)
           {
             Depend d = fpod.depends[i];
-            Pod dpod = doFind(d.name(), true, null, resolving);
+            Pod dpod = doFind(d.name(), false, null, thisResolving);
             if (dpod == null)
               throw new Exception("Missing dependency for '" + name + "': " + d);
             if (!d.match(dpod.version()))
@@ -84,11 +84,8 @@ public class Pod
           }
 
           // create the pod and register it
-          final Pod pod = new Pod(fpod);
-          ref = new SoftReference(pod);
+          ref = new SoftReference(new Pod(fpod));
           podsByName.put(name, ref);
-          if (!"sys".equals(name))
-            Env.cur().fireEvent(new PodEvent(pod, PodEvent.LOADED));
         }
         return (Pod)ref.get();
       }
@@ -130,7 +127,6 @@ public class Pod
       // create Pod and add to master table
       Pod pod = new Pod(fpod);
       podsByName.put(name, new SoftReference(pod));
-      Env.cur().fireEvent(new PodEvent(pod, PodEvent.LOADED));
       return pod;
     }
   }
@@ -225,8 +221,6 @@ public class Pod
   public Type typeof() { return Sys.PodType; }
 
   public final String name()  { return name; }
-
-  public final ClassLoader classLoader() { return classLoader; }
 
   public final Version version()
   {
@@ -435,7 +429,6 @@ public class Pod
       {
         cls = Env.cur().loadPodClass(this);
         FPodEmit.initFields(fpod, cls);
-        Env.cur().fireEvent(new PodEvent(this, PodEvent.STARTED));
       }
       catch (Exception e)
       {
@@ -471,7 +464,11 @@ public class Pod
     String podName  = ref.podName;
     String typeName = ref.typeName;
     if (podName.startsWith("[java]"))
-      return JavaType.make(podName, typeName, classLoader());
+    {
+      Type t = Env.cur().loadJavaType(podName, typeName, name);
+      if (ref.isNullable()) t = t.toNullable();
+      return t;
+    }
 
     // otherwise I need to handle if I am loading my own pod, because
     // I might not yet be added to the system namespace if I'm just

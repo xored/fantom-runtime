@@ -35,6 +35,8 @@ public abstract class Func
 
   public Type returns() { return returns; }
 
+  public long arity() { return params.size(); }
+
   public List params() { return params.ro(); }
 
   public abstract boolean isImmutable();
@@ -58,6 +60,9 @@ public abstract class Func
   public abstract Object call(Object a, Object b, Object c, Object d, Object e, Object f);
   public abstract Object call(Object a, Object b, Object c, Object d, Object e, Object f, Object g);
   public abstract Object call(Object a, Object b, Object c, Object d, Object e, Object f, Object g, Object h);
+
+  final boolean callBool(Object a) { return ((Boolean)call(a)).booleanValue(); }
+  final boolean callBool(Object a, Object b) { return ((Boolean)call(a, b)).booleanValue(); }
 
   // Hooks used by compiler to generate runtime const field checks for it-blocks
   public void enterCtor(Object o) {}

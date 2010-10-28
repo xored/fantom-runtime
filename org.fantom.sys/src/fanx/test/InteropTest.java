@@ -8,7 +8,9 @@
 package fanx.test;
 
 import java.util.*;
+import java.io.*;
 import java.math.*;
+import java.text.*;
 import fanx.util.*;
 
 /**
@@ -103,6 +105,10 @@ public class InteropTest
 
   public void array1(InteropTest[] x) { a = x[0]; b = x[1]; c = x[2]; }
 
+  public SimpleDateFormat[] formats;
+  public String[] strings;
+  public int[] ints;
+
 //////////////////////////////////////////////////////////////////////////
 // Primitive Arrays
 //////////////////////////////////////////////////////////////////////////
@@ -187,6 +193,15 @@ public class InteropTest
   }
 
 //////////////////////////////////////////////////////////////////////////
+// Class+Interfaces
+//////////////////////////////////////////////////////////////////////////
+
+  public static interface ComboA { String foo(String x); }
+  public static interface ComboB { String foo(String x); }
+  public static abstract class ComboC { public abstract String foo(String x); }
+  public static abstract class ComboD extends ComboC implements ComboA, ComboB {}
+
+//////////////////////////////////////////////////////////////////////////
 // JavaOverrides
 //////////////////////////////////////////////////////////////////////////
 
@@ -218,5 +233,14 @@ public class InteropTest
   {
     public String[] swap(String[] x);
   }
+
+//////////////////////////////////////////////////////////////////////////
+// Builtin Extra Types
+//////////////////////////////////////////////////////////////////////////
+
+  public static int charSequence(CharSequence x) { return x.length(); }
+  public static Serializable serializable(Serializable x) { return x; }
+  public static int comparable(Comparable a, Comparable b) { return a.compareTo(b); }
+  public static Number number(Number x) { return x; }
 
 }

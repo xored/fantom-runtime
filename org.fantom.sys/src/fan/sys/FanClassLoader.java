@@ -29,8 +29,7 @@ public class FanClassLoader
 
   public FanClassLoader(Pod  pod)
   {
-    super(new URL[0], "sys".equals(pod.name) ? extClassLoader : Env.cur()
-        .getExtClassLoader(pod.name));
+    super(new URL[0], pod.name == "sys" ? FanClassLoader.class.getClassLoader() : Env.cur().getJavaClassLoader(pod.name));
     try
     {
       this.pod = pod;

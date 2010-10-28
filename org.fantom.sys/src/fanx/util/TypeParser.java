@@ -45,8 +45,7 @@ public class TypeParser
       String podName, typeName;
       try
       {
-        int colon = sig.indexOf(':');
-        if (sig.charAt(colon+1) != ':') throw new Exception();
+        int colon = sig.indexOf("::");
         podName  = sig.substring(0, colon);
         typeName = sig.substring(colon+2);
         if (podName.length() == 0 || typeName.length() == 0) throw new Exception();
@@ -58,7 +57,7 @@ public class TypeParser
 
       // if podName starts with [java] this is a direct Java type
       if (podName.charAt(0) == '[')
-        return JavaType.make(podName, typeName, loadingPod != null ? loadingPod.classLoader() : defaultClassLoader());
+        return Env.cur().loadJavaType(podName, typeName, loadingPod == null ? "sys" : loadingPod.name());
 
       // if the type is from the pod being loaded then return to the pod
       if (loadingPod != null && podName.equals(loadingPod.name()))
@@ -124,13 +123,23 @@ public class TypeParser
     if (cur == '|')
       type = loadFunc();
 
-    // [java] is java FFI
-    else if (cur == '[' && sig.regionMatches(pos, "[java]", 0, 6))
-      type = loadFFI();
-
-    // [...] is map
+    // [ is either [ffi]xxx or [K:V] map
     else if (cur == '[')
-      type = loadMap();
+    {
+      boolean ffi = true;
+      for (int i=pos+1; i<len; ++i)
+      {
+        int ch = sig.charAt(i);
+        if (isIdChar(ch)) continue;
+        ffi = (ch == ']');
+        break;
+      }
+
+      if (ffi)
+        type = loadFFI();
+      else
+        type = loadMap();
+    }
 
     // otherwise must be basic[]
     else
@@ -201,8 +210,7 @@ public class TypeParser
   {
     // [java]foo.bar.foo
     int start = pos;
-    for (int i=0; i<6; ++i) consume();
-    while (cur != ':') consume();
+    while (cur != ':' || peek != ':') consume();
     String podName = sig.substring(start, pos);
 
     consume(':');
@@ -214,12 +222,7 @@ public class TypeParser
     while (isIdChar(cur)) consume();
     String typeName = sig.substring(start, pos);
 
-    return JavaType.make(podName, typeName, loadingPod != null ? loadingPod.classLoader() : defaultClassLoader());
-  }
-
-  private static ClassLoader defaultClassLoader()
-  {
-    return TypeParser.class.getClassLoader();
+    return Env.cur().loadJavaType(podName, typeName, loadingPod == null ? "sys" : loadingPod.name());
   }
 
   private Type loadBasic()

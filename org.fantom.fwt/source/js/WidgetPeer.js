@@ -181,7 +181,7 @@ fan.fwt.WidgetPeer.prototype.attachEvents = function(self, evtId, elem, event, l
       evt.m_pos = rel;
       evt.m_widget = self;
       //evt.count =
-      //evt.key =
+      evt.m_key = fan.fwt.WidgetPeer.toKey(e);
       meth.call(evt);
       return false;
     }
@@ -190,6 +190,34 @@ fan.fwt.WidgetPeer.prototype.attachEvents = function(self, evtId, elem, event, l
       elem.addEventListener(event, func, false);
     else
       elem.attachEvent("on"+event, func);
+  }
+}
+
+fan.fwt.WidgetPeer.toKey = function(event)
+{
+  // find primary key
+  var key = null;
+  if (event.keyCode != null && event.keyCode > 0)
+    key = fan.fwt.WidgetPeer.keyCodeToKey(event.keyCode);
+
+  if (event.shiftKey)   key = key==null ? fan.fwt.Key.m_shift : key.plus(fan.fwt.Key.m_shift);
+  if (event.altKey)     key = key==null ? fan.fwt.Key.m_alt   : key.plus(fan.fwt.Key.m_alt);
+  if (event.ctrlKey)    key = key==null ? fan.fwt.Key.m_ctrl  : key.plus(fan.fwt.Key.m_ctrl);
+  // TODO FIXIT
+  //if (event.commandKey) key = key.plus(Key.command);
+  return key;
+}
+
+fan.fwt.WidgetPeer.keyCodeToKey = function(keyCode)
+{
+  // TODO FIXIT: map rest of non-alpha keys
+  switch (keyCode)
+  {
+    case 38: return fan.fwt.Key.m_up;
+    case 40: return fan.fwt.Key.m_down;
+    case 37: return fan.fwt.Key.m_left;
+    case 39: return fan.fwt.Key.m_right;
+    default: return fan.fwt.Key.fromMask(keyCode);
   }
 }
 

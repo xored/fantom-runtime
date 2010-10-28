@@ -40,7 +40,7 @@ public class FanUtil
     }
 
     // map to a FFI Java class
-    return JavaType.make(cls);
+    return Env.cur().loadJavaType(cls);
   }
 
   private static HashMap javaToFanTypes = new HashMap();
@@ -59,11 +59,13 @@ public class FanUtil
     javaToFanTypes.put("java.lang.Double",     Sys.FloatType);
     javaToFanTypes.put("java.math.BigDecimal", Sys.DecimalType);
 
+/*
     javaToFanTypes.put("byte",  JavaType.ByteType);
     javaToFanTypes.put("short", JavaType.ShortType);
     javaToFanTypes.put("char",  JavaType.CharType);
     javaToFanTypes.put("int",   JavaType.IntType);
     javaToFanTypes.put("float", JavaType.FloatType);
+*/
   }
 
   /**
@@ -74,14 +76,29 @@ public class FanUtil
     return javaImmutables.get(cls.getName()) != null;
   }
 
+  // map all the basic types in the JDK which are immutable
   private static HashMap javaImmutables = new HashMap();
   static
   {
-    javaImmutables.put("java.lang.Boolean",    Boolean.TRUE);
-    javaImmutables.put("java.lang.String",     Boolean.TRUE);
-    javaImmutables.put("java.lang.Long",       Boolean.TRUE);
-    javaImmutables.put("java.lang.Double",     Boolean.TRUE);
-    javaImmutables.put("java.math.BigDecimal", Boolean.TRUE);
+    // java.lang
+    javaImmutables.put("java.lang.Boolean",             Boolean.TRUE);
+    javaImmutables.put("java.lang.Byte",                Boolean.TRUE);
+    javaImmutables.put("java.lang.Character",           Boolean.TRUE);
+    javaImmutables.put("java.lang.Class",               Boolean.TRUE);
+    javaImmutables.put("java.lang.Double",              Boolean.TRUE);
+    javaImmutables.put("java.lang.Float",               Boolean.TRUE);
+    javaImmutables.put("java.lang.Integer",             Boolean.TRUE);
+    javaImmutables.put("java.lang.Long",                Boolean.TRUE);
+    javaImmutables.put("java.lang.Package",             Boolean.TRUE);
+    javaImmutables.put("java.lang.Short",               Boolean.TRUE);
+    javaImmutables.put("java.lang.String",              Boolean.TRUE);
+    // java.lang.reflect
+    javaImmutables.put("java.lang.reflect.Constructor", Boolean.TRUE);
+    javaImmutables.put("java.lang.reflect.Field",       Boolean.TRUE);
+    javaImmutables.put("java.lang.reflect.Method",      Boolean.TRUE);
+    // java.math
+    javaImmutables.put("java.math.BigDecimal",          Boolean.TRUE);
+    javaImmutables.put("java.math.BigInteger",          Boolean.TRUE);
   }
 
   /**
@@ -263,14 +280,14 @@ public class FanUtil
     // primitives: [java]fanx.interop
     if (podName.equals("[java]fanx.interop"))
     {
-      if (typeName.equals("BooleanArray")) return sig ? "[Z" : "[boolean";
-      if (typeName.equals("ByteArray"))    return sig ? "[B" : "[byte";
-      if (typeName.equals("ShortArray"))   return sig ? "[S" : "[short";
-      if (typeName.equals("CharArray"))    return sig ? "[C" : "[char";
-      if (typeName.equals("IntArray"))     return sig ? "[I" : "[int";
-      if (typeName.equals("LongArray"))    return sig ? "[J" : "[long";
-      if (typeName.equals("FloatArray"))   return sig ? "[F" : "[float";
-      if (typeName.equals("DoubleArray"))  return sig ? "[D" : "[double";
+      if (typeName.equals("BooleanArray")) return "[Z";
+      if (typeName.equals("ByteArray"))    return "[B";
+      if (typeName.equals("ShortArray"))   return "[S";
+      if (typeName.equals("CharArray"))    return "[C";
+      if (typeName.equals("IntArray"))     return "[I";
+      if (typeName.equals("LongArray"))    return "[J";
+      if (typeName.equals("FloatArray"))   return "[F";
+      if (typeName.equals("DoubleArray"))  return "[D";
     }
 
     // buffer for signature
@@ -306,9 +323,7 @@ public class FanUtil
    */
   public static String toJavaTypeSig(Type t)
   {
-    if (t.pod() == null)
-      return toJavaTypeSig(((JavaType)t).podName(),t.name(),t.isNullable());
-    return toJavaTypeSig(t.pod().name(), t.name(), t.isNullable());
+    return toJavaTypeSig(t.podName(), t.name(), t.isNullable());
   }
 
   /**

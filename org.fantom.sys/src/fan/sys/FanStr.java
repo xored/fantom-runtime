@@ -20,6 +20,15 @@ import fanx.util.StrUtil;
 public class FanStr
 {
 
+  public static String fromChars(List chars)
+  {
+    if (chars.sz() == 0) return "";
+    StringBuilder s = new StringBuilder(chars.sz());
+    for (int i=0; i<chars.sz(); ++i)
+      s.append((char)((Long)chars.get(i)).longValue());
+    return s.toString();
+  }
+
   public static String makeTrim(StringBuilder s)
   {
     int start = 0;
@@ -308,6 +317,15 @@ public class FanStr
 // Iterators
 //////////////////////////////////////////////////////////////////////////
 
+  public static List chars(String self)
+  {
+    int len = self.length();
+    if (len == 0) return Sys.IntType.emptyList();
+    Long[] chars = new Long[len];
+    for (int i=0; i<len; ++i) chars[i] = Long.valueOf(self.charAt(i));
+    return new List(Sys.IntType, chars);
+  }
+
   public static void each(String self, Func f)
   {
     int len = self.length();
@@ -343,13 +361,13 @@ public class FanStr
     if (f.params.sz() == 1)
     {
       for (int i=0; i<len ; ++i)
-        if (f.call(Long.valueOf(self.charAt(i))) == Boolean.TRUE)
+        if (f.callBool(Long.valueOf(self.charAt(i))))
           return true;
     }
     else
     {
       for (int i=0; i<len ; ++i)
-        if (f.call(Long.valueOf(self.charAt(i)), Long.valueOf(i)) == Boolean.TRUE)
+        if (f.callBool(Long.valueOf(self.charAt(i)), Long.valueOf(i)))
           return true;
     }
     return false;
@@ -361,13 +379,13 @@ public class FanStr
     if (f.params.sz() == 1)
     {
       for (int i=0; i<len ; ++i)
-        if (f.call(Long.valueOf(self.charAt(i))) == Boolean.FALSE)
+        if (!f.callBool(Long.valueOf(self.charAt(i))))
           return false;
     }
     else
     {
       for (int i=0; i<len ; ++i)
-        if (f.call(Long.valueOf(self.charAt(i)), Long.valueOf(i)) == Boolean.FALSE)
+        if (!f.callBool(Long.valueOf(self.charAt(i)), Long.valueOf(i)))
           return false;
     }
     return true;

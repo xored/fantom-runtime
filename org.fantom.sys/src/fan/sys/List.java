@@ -41,6 +41,7 @@ public final class List
 
   public static List make(Type of, Object[] values)
   {
+    if (values == null) return null;
     return new List(of, values);
   }
 
@@ -48,16 +49,8 @@ public final class List
   {
     if (of == null) { Thread.dumpStack(); throw new NullErr().val; }
     this.of = of;
-	if(values == null)
-	{
-		this.values = new Object[0];
-		this.size = 0;
-	} 
-	else 
-	{
-		this.values = values;
-		this.size = values.length;
-	}
+    this.values = values;
+    this.size = values.length;
   }
 
   public List(Type of, Object[] values, int size)
@@ -621,13 +614,13 @@ public final class List
     if (f.params.sz() == 1)
     {
       for (int i=0; i<size; ++i)
-        if (f.call(values[i]) == Boolean.TRUE)
+        if (f.callBool(values[i]))
           return values[i];
     }
     else
     {
       for (int i=0; i<size; ++i)
-        if (f.call(values[i], Long.valueOf(i)) == Boolean.TRUE)
+        if (f.callBool(values[i], Long.valueOf(i)))
           return values[i];
     }
     return null;
@@ -639,7 +632,7 @@ public final class List
     {
       for (int i=0; i<size; ++i)
       {
-        if (f.call(values[i]) == Boolean.TRUE)
+        if (f.callBool(values[i]))
           return Long.valueOf(i);
       }
     }
@@ -648,7 +641,7 @@ public final class List
       for (int i=0; i<size; ++i)
       {
         Long pos = Long.valueOf(i);
-        if (f.call(values[i], pos) == Boolean.TRUE)
+        if (f.callBool(values[i], pos))
           return pos;
       }
     }
@@ -661,13 +654,13 @@ public final class List
     if (f.params.sz() == 1)
     {
       for (int i=0; i<size; ++i)
-        if (f.call(values[i]) == Boolean.TRUE)
+        if (f.callBool(values[i]))
           acc.add(values[i]);
     }
     else
     {
       for (int i=0; i<size; ++i)
-        if (f.call(values[i], Long.valueOf(i)) == Boolean.TRUE)
+        if (f.callBool(values[i], Long.valueOf(i)))
           acc.add(values[i]);
     }
     return acc;
@@ -691,13 +684,13 @@ public final class List
     if (f.params.sz() == 1)
     {
       for (int i=0; i<size; ++i)
-        if (f.call(values[i]) != Boolean.TRUE)
+        if (!f.callBool(values[i]))
           acc.add(values[i]);
     }
     else
     {
       for (int i=0; i<size; ++i)
-        if (f.call(values[i], Long.valueOf(i)) != Boolean.TRUE)
+        if (!f.callBool(values[i], Long.valueOf(i)))
           acc.add(values[i]);
     }
     return acc;
@@ -708,13 +701,13 @@ public final class List
     if (f.params.sz() == 1)
     {
       for (int i=0; i<size; ++i)
-        if (f.call(values[i]) == Boolean.TRUE)
+        if (f.callBool(values[i]))
           return true;
     }
     else
     {
       for (int i=0; i<size; ++i)
-        if (f.call(values[i], Long.valueOf(i)) == Boolean.TRUE)
+        if (f.callBool(values[i], Long.valueOf(i)))
           return true;
     }
     return false;
@@ -725,13 +718,13 @@ public final class List
     if (f.params.sz() == 1)
     {
       for (int i=0; i<size; ++i)
-        if (f.call(values[i]) != Boolean.TRUE)
+        if (!f.callBool(values[i]))
           return false;
     }
     else
     {
       for (int i=0; i<size; ++i)
-        if (f.call(values[i], Long.valueOf(i)) != Boolean.TRUE)
+        if (!f.callBool(values[i], Long.valueOf(i)))
           return false;
     }
     return true;
@@ -796,6 +789,7 @@ public final class List
 
   public final List unique()
   {
+    if (size <= 1) return dup();
     HashMap dups = new HashMap(size*3);
     List acc = new List(of, size);
     for (int i=0; i<size; ++i)

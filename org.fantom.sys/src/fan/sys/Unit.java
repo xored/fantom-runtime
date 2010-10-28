@@ -8,6 +8,7 @@
 package fan.sys;
 
 import java.util.HashMap;
+import java.util.ArrayList;
 
 /**
  * Unit
@@ -20,12 +21,12 @@ public final class Unit
 // Database
 //////////////////////////////////////////////////////////////////////////
 
-  public static Unit find(String name) { return find(name, true); }
-  public static Unit find(String name, boolean checked)
+  public static Unit fromStr(String name) { return fromStr(name, true); }
+  public static Unit fromStr(String name, boolean checked)
   {
-    synchronized (units)
+    synchronized (byId)
     {
-      Unit unit = (Unit)units.get(name);
+      Unit unit = (Unit)byId.get(name);
       if (unit != null || !checked) return unit;
       throw Err.make("Unit not found: " + name).val;
     }
@@ -33,9 +34,9 @@ public final class Unit
 
   public static List list()
   {
-    synchronized (units)
+    synchronized (list)
     {
-      return new List(Sys.UnitType, units.values().toArray());
+      return list.dup().ro();
     }
   }
 
@@ -53,49 +54,67 @@ public final class Unit
 
   private static List loadDatabase()
   {
+    InStream in = null;
+    List quantityNames = new List(Sys.StrType);
     try
     {
-      // parse etc/sys/units.fog as big serialized list which contains
-      // lists for each quantity (first item being the name)
-      String path = "etc/sys/units.fog";
-      InStream in;
+      // open etc/sys/units.txt
+      String path = "etc/sys/units.txt";
       if (Sys.isJarDist)
         in = new SysInStream(Unit.class.getClassLoader().getResourceAsStream(path));
       else
         in = Env.cur().findFile(path).in();
-      List all = (List)in.readObj();
-      in.close();
 
-      // map lists to quantity data structures
-      List quantityNames = new List(Sys.StrType);
-      for (int i=0; i<all.sz(); ++i)
+      // parse each line
+      String curQuantityName = null;
+      List curQuantityList = null;
+      String line;
+      while ((line = in.readLine()) != null)
       {
-        List q = (List)all.get(i);
-        String name = (String)q.get(0);
-        q.removeAt(0);
-        q = (List)q.toImmutable();
-        quantityNames.add(name);
-        quantities.put(name, q);
-      }
+        // skip comment and blank lines
+        line = line.trim();
+        if (line.startsWith("//") || line.length() == 0) continue;
 
-      // return quantity names
-      return (List)quantityNames.toImmutable();
+        // quanity sections delimited as "-- name (dim)"
+        if (line.startsWith("--"))
+        {
+          if (curQuantityName != null) quantities.put(curQuantityName, curQuantityList.toImmutable());
+          curQuantityName = line.substring(2, line.indexOf('(')).trim();
+          curQuantityList = new List(Sys.UnitType);
+          quantityNames.add(curQuantityName);
+          continue;
+        }
+
+        // must be a unit
+        try
+        {
+          Unit unit = Unit.define(line);
+          curQuantityList.add(unit);
+        }
+        catch (Exception e)
+        {
+          System.out.println("WARNING: Init unit in etc/sys/units.txt: " + line);
+          System.out.println("  " + e);
+        }
+      }
+      quantities.put(curQuantityName, curQuantityList.toImmutable());
     }
     catch (Throwable e)
     {
-      System.out.println("WARNING: Cannot load etc/sys/units.fog");
+      try { in.close(); } catch (Exception e2) {}
+      System.out.println("WARNING: Cannot load etc/sys/units.txt");
       e.printStackTrace();
-      return (List)new List(Sys.StrType).toImmutable();
     }
+    return (List)quantityNames.toImmutable();
   }
 
 //////////////////////////////////////////////////////////////////////////
-// Parsing
+// Definition
 //////////////////////////////////////////////////////////////////////////
 
-  public static Unit fromStr(String str) { return fromStr(str, true); }
-  public static Unit fromStr(String str, boolean checked)
+  public static Unit define(String str)
   {
+    // parse
     Unit unit = null;
     try
     {
@@ -103,41 +122,57 @@ public final class Unit
     }
     catch (Throwable e)
     {
-      if (!checked) return null;
-      throw ParseErr.make("Unit", str).val;
+      String msg = str;
+      if (e instanceof ParseErr.Val) msg += ": " + ((ParseErr.Val)e).err.msg();
+      throw ParseErr.make("Unit", msg).val;
     }
-    return define(unit);
+
+    // register
+    synchronized (byId)
+    {
+      // check that none of the units are defined
+      for (int i=0; i<unit.ids.sz(); ++i)
+      {
+        String id = (String)unit.ids.get(i);
+        if (byId.get(id) != null) throw Err.make("Unit id already defined: " + id).val;
+      }
+
+      // this is a new definition
+      for (int i=0; i<unit.ids.sz(); ++i)
+      {
+        String id = (String)unit.ids.get(i);
+        byId.put(id, unit);
+      }
+      list.add(unit);
+    }
+
+    return unit;
   }
 
   /**
    * Parse an un-interned unit:
-   *   unit := <name> [";" <symbol> [";" <dim> [";" <scale> [";" <offset>]]]]
+   *   unit := <ids> [";" <dim> [";" <scale> [";" <offset>]]]
    */
   private static Unit parseUnit(String s)
   {
-    String name = s;
+    String idStrs = s;
     int c = s.indexOf(';');
-    if (c < 0) return new Unit(name, name, dimensionless, 1, 0);
+    if (c > 0) idStrs = s.substring(0, c);
+    List ids = FanStr.split(idStrs, Long.valueOf(','));
+    if (c < 0) return new Unit(ids, dimensionless, 1, 0);
 
-    name = s.substring(0, c).trim();
-    String symbol = s = s.substring(c+1).trim();
-    c = s.indexOf(';');
-    if (c < 0) return new Unit(name, symbol, dimensionless, 1, 0);
-
-    symbol = s.substring(0, c).trim();
-    if (symbol.length() == 0) symbol = name;
     String dim = s = s.substring(c+1).trim();
     c = s.indexOf(';');
-    if (c < 0) return new Unit(name, symbol, parseDim(dim), 1, 0);
+    if (c < 0) return new Unit(ids, parseDim(dim), 1, 0);
 
     dim = s.substring(0, c).trim();
     String scale = s = s.substring(c+1).trim();
     c = s.indexOf(';');
-    if (c < 0) return new Unit(name, symbol, parseDim(dim), Double.parseDouble(scale), 0);
+    if (c < 0) return new Unit(ids, parseDim(dim), Double.parseDouble(scale), 0);
 
     scale = s.substring(0, c).trim();
     String offset = s.substring(c+1).trim();
-    return new Unit(name, symbol, parseDim(dim), Double.parseDouble(scale), Double.parseDouble(offset));
+    return new Unit(ids, parseDim(dim), Double.parseDouble(scale), Double.parseDouble(offset));
   }
 
   /**
@@ -164,71 +199,40 @@ public final class Unit
       if (r.startsWith("K"))   { dim.K   = Byte.parseByte(r.substring(1).trim()); continue; }
       if (r.startsWith("A"))   { dim.A   = Byte.parseByte(r.substring(1).trim()); continue; }
       if (r.startsWith("cd"))  { dim.cd  = Byte.parseByte(r.substring(2).trim()); continue; }
-      throw new RuntimeException("Bad ratio '" + r + "'");
+      throw ParseErr.make("Bad ratio '" + r + "'").val;
     }
 
     // intern
-    synchronized (dims)
-    {
-      Dimension cached = (Dimension)dims.get(dim);
-      if (cached != null) return cached;
-      dims.put(dim, dim);
-      return dim;
-    }
-  }
-
-//////////////////////////////////////////////////////////////////////////
-// Definition
-//////////////////////////////////////////////////////////////////////////
-
-  /**
-   * Define a new unit.  If the unit is already defined then we check
-   * that it is compatible with our existing definition and intern it.
-   */
-  private static Unit define(Unit unit)
-  {
-    synchronized (units)
-    {
-      // lookup by name
-      Unit existing = (Unit)units.get(unit.name);
-
-      // if we have an existing check if compatible
-      if (existing != null)
-      {
-        if (!existing.isCompatibleDefinition(unit))
-          throw Err.make("Attempt to define incompatible units: " + existing + " != " + unit).val;
-        return existing;
-      }
-
-      // this is a new definition
-      units.put(unit.name, unit);
-      return unit;
-    }
-  }
-
-  /**
-   * Return if this unit is compatible with the other unit's definition.
-   * We provide a little flexibility on the scale and offset because
-   * doubles are so imprecise.
-   */
-  private boolean isCompatibleDefinition(Unit x)
-  {
-    return symbol.equals(x.symbol) &&
-           dim == x.dim &&
-           FanFloat.approx(scale, x.scale) &&
-           FanFloat.approx(offset, x.offset);
+    return dim.intern();
   }
 
   /**
    * Private constructor.
    */
-  private Unit(String name, String symbol, Dimension dim, double scale, double offset)
+  private Unit(List ids, Dimension dim, double scale, double offset)
   {
-    this.name   = name;
-    this.symbol = symbol;
+    this.ids    = checkIds(ids);
     this.dim    = dim;
     this.scale  = scale;
     this.offset = offset;
+  }
+
+  static List checkIds(List ids)
+  {
+    if (ids.sz() == 0) throw ParseErr.make("No unit ids defined").val;
+    for (int i=0; i<ids.sz(); ++i) checkId((String)ids.get(i));
+    return (List)ids.toImmutable();
+  }
+
+  static void checkId(String id)
+  {
+    if (id.length() == 0) throw ParseErr.make("Invalid unit id length 0").val;
+    for (int i=0; i<id.length(); ++i)
+    {
+      int c = id.charAt(i);
+      if (FanInt.isAlpha(c) || c == '_' || c == '%' || c == '/' || c > 128) continue;
+      throw ParseErr.make("Invalid unit id " + id + " (invalid char '" + (char)c + "')").val;
+    }
   }
 
 //////////////////////////////////////////////////////////////////////////
@@ -243,34 +247,37 @@ public final class Unit
 
   public final Type typeof() { return Sys.UnitType; }
 
-  public String toStr()
-  {
-    if (str == null)
-    {
-      StringBuilder s = new StringBuilder();
-      s.append(name);
-      s.append("; ").append(symbol);
-      if (dim != dimensionless)
-      {
-        s.append("; ").append(dim);
-        if (scale != 1.0 || offset != 0.0)
-        {
-          s.append("; ").append(scale);
-          if (offset != 0.0) s.append("; ").append(offset);
-        }
-      }
-      str = s.toString();
-    }
-    return str;
-  }
+  public final String toStr() { return (String)ids.last(); }
 
-  public final String name() { return name; }
+  public final List ids() { return ids; }
 
-  public final String symbol() { return symbol; }
+  public final String name() { return (String)ids.first(); }
+
+  public final String symbol() { return (String)ids.last(); }
 
   public final double scale() { return scale; }
 
   public final double offset() { return offset; }
+
+  public final String definition()
+  {
+    StringBuilder s = new StringBuilder();
+    for (int i=0; i<ids.sz(); ++i)
+    {
+      if (i > 0) s.append(", ");
+      s.append(ids.get(i));
+    }
+    if (dim != dimensionless)
+    {
+      s.append("; ").append(dim);
+      if (scale != 1.0 || offset != 0.0)
+      {
+        s.append("; ").append(scale);
+        if (offset != 0.0) s.append("; ").append(offset);
+      }
+    }
+    return s.toString();
+  }
 
 //////////////////////////////////////////////////////////////////////////
 // Dimension
@@ -326,8 +333,154 @@ public final class Unit
       s.append(key).append(val);
     }
 
+    public Dimension add(Dimension b)
+    {
+      Dimension r = new Dimension();
+      r.kg  = (byte)(kg  + b.kg);
+      r.m   = (byte)(m   + b.m);
+      r.sec = (byte)(sec + b.sec);
+      r.K   = (byte)(K   + b.K);
+      r.A   = (byte)(A   + b.A);
+      r.mol = (byte)(mol + b.mol);
+      r.cd  = (byte)(cd  + b.cd);
+      return r;
+    }
+
+    public Dimension subtract(Dimension b)
+    {
+      Dimension r = new Dimension();
+      r.kg  = (byte)(kg  - b.kg);
+      r.m   = (byte)(m   - b.m);
+      r.sec = (byte)(sec - b.sec);
+      r.K   = (byte)(K   - b.K);
+      r.A   = (byte)(A   - b.A);
+      r.mol = (byte)(mol - b.mol);
+      r.cd  = (byte)(cd  - b.cd);
+      return r;
+    }
+
+    public Dimension intern()
+    {
+      // intern
+      synchronized (dims)
+      {
+        Dimension cached = (Dimension)dims.get(this);
+        if (cached != null) return cached;
+        dims.put(this, this);
+        return this;
+      }
+    }
+
     String str;
     byte kg, m, sec, K, A, mol, cd;
+  }
+
+//////////////////////////////////////////////////////////////////////////
+// Arithmetic
+//////////////////////////////////////////////////////////////////////////
+
+  public final Unit mult(Unit b)
+  {
+    synchronized (combos)
+    {
+      Combo key = new Combo(this, "*", b);
+      Unit r = (Unit)combos.get(key);
+      if (r == null)
+      {
+        r = findMult(this, b);
+        combos.put(key, r);
+      }
+      return r;
+    }
+  }
+
+  private static Unit findMult(Unit a, Unit b)
+  {
+    // compute dim/scale of a * b
+    Dimension dim = a.dim.add(b.dim).intern();
+    double scale = a.scale * b.scale;
+
+    // find all the matches
+    Unit[] matches = match(dim, scale);
+    if (matches.length == 1) return matches[0];
+
+    // right how our technique for resolving multiple matches is lame
+    String expectedName = a.name() + "_" + b.name();
+    for (int i=0; i<matches.length; ++i)
+      if (matches[i].name().equals(expectedName))
+        return matches[i];
+
+    // for now just give up
+    throw Err.make("Cannot match to db: " + a + " * " + b).val;
+  }
+
+  public final Unit div(Unit b)
+  {
+    synchronized (combos)
+    {
+      Combo key = new Combo(this, "/", b);
+      Unit r = (Unit)combos.get(key);
+      if (r == null)
+      {
+        r = findDiv(this, b);
+        combos.put(key, r);
+      }
+      return r;
+    }
+  }
+
+  public final Unit findDiv(Unit a, Unit b)
+  {
+    // compute dim/scale of a / b
+    Dimension dim = a.dim.subtract(b.dim).intern();
+    double scale = a.scale / b.scale;
+
+    // find all the matches
+    Unit[] matches = match(dim, scale);
+    if (matches.length == 1) return matches[0];
+
+    // right how our technique for resolving multiple matches is lame
+    String expectedName = a.name() + "_per_" + b.name();
+    for (int i=0; i<matches.length; ++i)
+      if (matches[i].name().contains(expectedName))
+        return matches[i];
+
+    // for now just give up
+    throw Err.make("Cannot match to db: " + a + " / " + b).val;
+  }
+
+  private static Unit[] match(Dimension dim, double scale)
+  {
+    ArrayList acc = new ArrayList();
+    synchronized (list)
+    {
+      for (int i=0; i<list.sz(); ++i)
+      {
+        Unit x = (Unit)list.get(i);
+        if (x.dim == dim && approx(x.scale, scale))
+          acc.add(x);
+      }
+    }
+    return (Unit[])acc.toArray(new Unit[acc.size()]);
+  }
+
+  private static boolean approx(double a, double b)
+  {
+    // pretty loose with our approximation because the database
+    // doesn't have super great resolution for some normalizations
+    if (a == b) return true;
+    double t = Math.min( Math.abs(a/1e3), Math.abs(b/1e3) );
+    return Math.abs(a - b) <= t;
+  }
+
+  static class Combo
+  {
+    Combo(Unit a, String op, Unit b) { this.a  = a; this.op = op; this.b  = b; }
+    public int hashCode() { return a.hashCode() ^ op.hashCode() ^ (b.hashCode() << 13); }
+    public boolean equals(Object that) { Combo x = (Combo)that; return a == x.a && op == x.op && b == x.b; }
+    final Unit a;
+    final String op;
+    final Unit b;
   }
 
 //////////////////////////////////////////////////////////////////////////
@@ -344,9 +497,11 @@ public final class Unit
 // Fields
 //////////////////////////////////////////////////////////////////////////
 
-  private static final HashMap units = new HashMap(); // String name -> Unit
+  private static final List list = new List(Sys.UnitType);
+  private static final HashMap byId = new HashMap(); // String id-> Unit
   private static final HashMap dims = new HashMap(); // Dimension -> Dimension
   private static final HashMap quantities = new HashMap(); // String -> List
+  private static final HashMap combos = new HashMap();  // Combo -> Unit
   private static final List quantityNames;
   private static final Dimension dimensionless = new Dimension();
   static
@@ -355,11 +510,9 @@ public final class Unit
     quantityNames = loadDatabase();
   }
 
-  private final String name;
-  private final String symbol;
+  private final List ids;
   private final double scale;
   private final double offset;
   private final Dimension dim;
-  private String str;
 
 }

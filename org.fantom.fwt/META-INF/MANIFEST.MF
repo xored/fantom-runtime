@@ -2,8 +2,10 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Fwt
 Bundle-SymbolicName: org.fantom.fwt;singleton:=true
-Bundle-Version: 1.0.52.qualifier
+Bundle-Version: 1.0.55.qualifier
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
 Require-Bundle: org.eclipse.swt,
- org.fantom.sys;bundle-version="1.0.52"
+ org.fantom.sys;bundle-version="1.0.55",
+ org.fantom.concurrent;bundle-version="1.0.55",
+ org.fantom.gfx;bundle-version="1.0.55"
 Export-Package: org.fantom.fwt.util

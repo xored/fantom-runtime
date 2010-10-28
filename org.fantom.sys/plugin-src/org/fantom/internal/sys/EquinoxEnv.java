@@ -1,20 +1,14 @@
 package org.fantom.internal.sys;
 
 import java.io.File;
-import java.util.EventObject;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.eclipse.osgi.util.NLS;
-import org.fantom.FantomVM;
 import org.fantom.internal.core.Pod;
 
 import fan.sys.Env;
 import fan.sys.List;
-import fan.sys.Method;
-import fan.sys.PodEvent;
 import fan.sys.Sys;
-import fan.sys.Type;
 import fan.sys.UnknownPodErr;
 import fan.sys.UnresolvedErr;
 
@@ -60,74 +54,22 @@ public class EquinoxEnv extends Env
   }
 
   @Override
-  public ClassLoader getExtClassLoader(String podName)
+  public ClassLoader getJavaClassLoader(String callingPod)
   {
-    final Pod pod = pods.get(podName);
+    final Pod pod = pods.get(callingPod);
     if (pod != null)
     {
       return pod;
     }
     else
     {
-      return super.getExtClassLoader(podName);
+      return super.getJavaClassLoader(callingPod);
     }
   }
-
+  
   @Override
-  public void fireEvent(EventObject event)
+  public Class loadJavaClass(String className, String loadingPod) throws Exception
   {
-    super.fireEvent(event);
-    if (FantomVM.DEBUG)
-      System.out.println(event);
-    if (event instanceof PodEvent)
-    {
-      final PodEvent podEvent = (PodEvent) event;
-      if (podEvent.kind() == PodEvent.STARTED)
-      {
-        callActivator(podEvent);
-      }
-    }
-  }
-
-  private void callActivator(final PodEvent podEvent)
-  {
-    final Pod pod = pods.get(podEvent.podName());
-    if (pod == null || pod.getActivator() == null)
-    {
-      return;
-    }
-    final Type activatorType = podEvent.pod().type(pod.getActivator(), false);
-    if (activatorType == null)
-    {
-      Activator.error(NLS.bind("Activator \"{0}\" not found in pod {1}", pod
-          .getActivator(), podEvent.podName()));
-      return;
-    }
-    final Method startMethod = activatorType.method("start", false);
-    if (startMethod == null)
-    {
-      Activator.error(NLS.bind(
-          "Method start() not found in activator \"{0}\" of {1}", pod
-              .getActivator(), podEvent.podName()));
-      return;
-    }
-    try
-    {
-      if (startMethod.isStatic())
-      {
-        startMethod.call();
-      }
-      else
-      {
-        Object activator = activatorType.make();
-        startMethod.callOn(activator, null);
-      }
-    }
-    catch (Exception e)
-    {
-      Activator.error(NLS.bind("Error executing activator \"{0}\" of {1}", pod
-          .getActivator(), podEvent.podName()), e);
-      return;
-    }
+    return getJavaClassLoader(loadingPod).loadClass(className);
   }
 }

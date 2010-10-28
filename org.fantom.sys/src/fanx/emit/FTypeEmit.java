@@ -65,9 +65,10 @@ public abstract class FTypeEmit
 
   protected FTypeEmit(Type parent, FType type)
   {
-    this.parent = parent;
-    this.pod    = type.pod;
-    this.type   = type;
+    this.parent  = parent;
+    this.pod     = type.pod;
+    this.type    = type;
+    this.lineNum = type.attrs.lineNum;
   }
 
 //////////////////////////////////////////////////////////////////////////
@@ -125,6 +126,7 @@ public abstract class FTypeEmit
     code.maxStack  = 2;
     code.op2(GETSTATIC, typeField.ref());
     code.op(ARETURN);
+    code.emitLineNumber(lineNum);
 
     // if native generate peer field and peer() override
     if (isNative)
@@ -134,13 +136,17 @@ public abstract class FTypeEmit
   /**
    * Emit an attribute
    */
-  private void emitAttributes(FAttrs attrs)
+  protected void emitAttributes(FAttrs attrs)
   {
+    // source file
     if (attrs.sourceFile != null)
     {
       AttrEmit attr = emitAttr("SourceFile");
       attr.info.u2(utf(attrs.sourceFile));
     }
+
+    // any Java facets get emitted as annotations
+    FFacetEmit.emitType(this, pod, attrs);
   }
 
   /**
@@ -149,7 +155,10 @@ public abstract class FTypeEmit
   protected void emit(FField f)
   {
     if ((f.flags & FConst.Storage) != 0)
-      emitField(f.name, pod.typeRef(f.type).jsig(), jflags(f.flags));
+    {
+      FieldEmit fe = emitField(f.name, pod.typeRef(f.type).jsig(), jflags(f.flags));
+      FFacetEmit.emitField(fe, pod, f.attrs);
+    }
   }
 
   /**
@@ -167,22 +176,25 @@ public abstract class FTypeEmit
     if (name.equals("instance$init")) { emitInstanceInit(m); return; }
 
     // handle native/constructor/normal method
-    MethodEmit me;
+    MethodEmit me = null;
     if (isNative)
     {
-      new FMethodEmit(this, m).emitNative();
+      me = new FMethodEmit(this, m).emitNative();
     }
     else if (isCtor)
     {
       if (parent.base().isJava())
-        new FMethodEmit(this, m).emitCtorWithJavaSuper();
+        me = new FMethodEmit(this, m).emitCtorWithJavaSuper();
       else
-        new FMethodEmit(this, m).emitCtor();
+        me = new FMethodEmit(this, m).emitCtor();
     }
     else
     {
-      new FMethodEmit(this, m).emitStandard();
+      me = new FMethodEmit(this, m).emitStandard();
     }
+
+    // Java annotations
+    FFacetEmit.emitMethod(me, pod, m.attrs);
   }
 
   protected void emitInstanceInit(FMethod m)
@@ -221,9 +233,14 @@ public abstract class FTypeEmit
     }
 
     if (m == null)
+    {
       code.op(RETURN);
+      code.emitLineNumber(lineNum);
+    }
     else
+    {
       new FCodeEmit(this, m, code).emit();
+    }
   }
 
   void emitStaticInit(FMethod m)
@@ -247,9 +264,14 @@ public abstract class FTypeEmit
     }
 
     if (m == null)
+    {
       code.op(RETURN);
+      code.emitLineNumber(lineNum);
+    }
     else
+    {
       new FCodeEmit(this, m, code).emit();
+    }
   }
 
   void emitTypeConstFields()
@@ -401,5 +423,6 @@ public abstract class FTypeEmit
   FuncType funcType;             // if type is a function
   HashMap typeLiteralFields;     // signature Strings we need to turn into cached fields
   boolean isNative = false;      // do we have any native methods requiring a peer
+  int lineNum;                   // line number of current type (or zero)
 
 }

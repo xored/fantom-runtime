@@ -42,6 +42,7 @@ public class FMethodEmit
     this.isNative = (method.flags & FConst.Native) != 0;
     this.ret      = emit.pod.typeRef(method.inheritedRet); // we don't actually use Java covariance
     this.selfName = emit.selfName;
+    this.lineNum  = method.attrs.lineNum;
   }
 
   /**
@@ -59,13 +60,15 @@ public class FMethodEmit
   /**
    * Emit a standard instance/static class method.
    */
-  public void emitStandard()
+  public MethodEmit emitStandard()
   {
     // emit method
     MethodEmit main = doEmit();
 
     // emit param default wrappers
     emitWrappers(main);
+
+    return main;
   }
 
   /**
@@ -83,7 +86,7 @@ public class FMethodEmit
    * routed to the ctor factory, and CallCtor opcodes are routed
    * to the ctor body.
    */
-  public void emitCtor()
+  public MethodEmit emitCtor()
   {
     String ctorName = this.name;
 
@@ -105,7 +108,7 @@ public class FMethodEmit
     this.ret  = emit.pod.typeRef(emit.type.self);
     this.code = null;
     int init = emit.method(selfName+ ".<init>()V");
-    emitCtorFactory(init, body, method.paramCount);
+    MethodEmit factory = emitCtorFactory(init, body, method.paramCount);
 
     // emit separate factory for each method with default
     // parameters: note each factory allocs the object and
@@ -116,6 +119,9 @@ public class FMethodEmit
     for (int i=0; i<method.paramCount; ++i)
       if (method.vars[i].def != null)
         emitCtorFactory(init, wrappers[i], i);
+
+    // return static factory as our primary Java method
+    return factory;
   }
 
   /**
@@ -126,7 +132,7 @@ public class FMethodEmit
    *     static Foo make(long a) { return make$(new Foo(), a) }
    *     static Foo make(long a, Object b) { return make$(new Foo(), a, b) }
    */
-  private void emitCtorFactory(int init, MethodEmit body, int paramLen)
+  private MethodEmit emitCtorFactory(int init, MethodEmit body, int paramLen)
   {
     this.paramLen = paramLen;
     MethodEmit factory = doEmit();
@@ -139,6 +145,8 @@ public class FMethodEmit
     code.maxStack  = code.maxLocals + 2;
     code.op2(INVOKESTATIC, body.ref());
     code.op(ARETURN);
+    code.emitLineNumber(lineNum);
+    return factory;
   }
 
   /**
@@ -152,7 +160,7 @@ public class FMethodEmit
    *     static Foo make(String a) { return new Foo(a) }
    *     Foo(String a) { ... }
    */
-  public void emitCtorWithJavaSuper()
+  public MethodEmit emitCtorWithJavaSuper()
   {
     String ctorName = this.name;
 
@@ -178,15 +186,17 @@ public class FMethodEmit
     code.maxStack  = code.maxLocals + 2;
     code.op2(INVOKESPECIAL, body.ref());
     code.op(ARETURN);
+    code.emitLineNumber(lineNum);
 
     // emit factory default parameter wrappers
     emitWrappers(factory);
+    return factory;
   }
 
   /**
    * Emit a native method
    */
-  public void emitNative()
+  public MethodEmit emitNative()
   {
     // emit an empty method
     this.code = null;
@@ -219,6 +229,7 @@ public class FMethodEmit
 
     // emit default parameter wrappers
     emitWrappers(main);
+    return main;
   }
 
 
@@ -276,7 +287,7 @@ public class FMethodEmit
   {
     String parent  = "fan/" + m.parent().pod().name() + "/" + m.parent().name();
     String name    = m.name();
-    int jflags     = emit.jflags(m.flags()) | PUBLIC;
+    int jflags     = emit.jflags(m.flags()) | PUBLIC | SYNTHETIC;
     List params    = m.params();
     int paramCount = params.sz();
 
@@ -306,6 +317,9 @@ public class FMethodEmit
       code.op(FCodeEmit.returnOp(FanUtil.toJavaStackType(m.returns())));
       code.maxLocals = jindex;
       code.maxStack = jindex+1;  // leave room for wide return
+
+      // use line number of class header
+      code.emitLineNumber(emit.lineNum);
     }
   }
 
@@ -472,6 +486,7 @@ public class FMethodEmit
   int paramLen;      // number of parameters to use
   String sig;        // last java signature emitted
   MethodEmit me;     // last java method emitted
+  int lineNum;       // line number of method (or zero)
 
 
 }

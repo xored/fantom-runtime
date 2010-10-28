@@ -177,10 +177,32 @@ class DateTimeStr
           }
           break;
 
+        case 'S':
+          if (sec != 0 || ns != 0)
+          {
+            switch (n)
+            {
+              case 2:  if (sec < 10) s.append('0');
+              case 1:  s.append(sec); break;
+              default: invalidNum = true;
+            }
+          }
+          break;
+
         case 'a':
           switch (n)
           {
-            case 1:  s.append(hour < 12 ? "AM" : "PM"); break;
+            case 1:  s.append(hour < 12 ? "a"  : "p"); break;
+            case 2:  s.append(hour < 12 ? "am" : "pm"); break;
+            default: invalidNum = true;
+          }
+          break;
+
+        case 'A':
+          switch (n)
+          {
+            case 1:  s.append(hour < 12 ? "A"  : "P"); break;
+            case 2:  s.append(hour < 12 ? "AM" : "PM"); break;
             default: invalidNum = true;
           }
           break;
@@ -240,9 +262,17 @@ class DateTimeStr
           if (FanInt.isAlpha(c))
             throw ArgErr.make("Invalid pattern: unsupported char '" + (char)c + "'").val;
 
-          // don't display symbol between ss.FFF if fractions is zero
-          if (i+1<len && pattern.charAt(i+1) == 'F' && ns == 0)
-            break;
+          // check for symbol skip
+          if (i+1 < len)
+          {
+            int next = pattern.charAt(i+1);
+
+            // don't display symbol between ss.FFF if fractions is zero
+            if (next  == 'F' && ns == 0) break;
+
+            // don't display symbol between mm:SS if secs is zero
+            if (next == 'S' && sec == 0 && ns == 0) break;
+          }
 
           s.append((char)c);
       }
@@ -360,6 +390,7 @@ class DateTimeStr
     this.str = s;
     this.pos = 0;
     int len = pattern.length();
+    boolean skippedLast = false;
     for (int i=0; i<len; ++i)
     {
       // character
@@ -410,8 +441,13 @@ class DateTimeStr
           sec = parseInt(n);
           break;
 
+        case 'S':
+          if (!skippedLast) sec = parseInt(n);
+          break;
+
         case 'a':
-          int amPm = str.charAt(pos); pos += 2;
+        case 'A':
+          int amPm = str.charAt(pos); pos += n;
           if (amPm == 'P' || amPm == 'p')
           {
             if (hour < 12) hour += 12;
@@ -426,8 +462,11 @@ class DateTimeStr
           skipWord();
           break;
 
-        case 'f':
         case 'F':
+          if (skippedLast) break;
+          // fall-thru
+
+        case 'f':
           ns = 0;
           int tenth = 100000000;
           while (true)
@@ -459,7 +498,19 @@ class DateTimeStr
           break;
 
         default:
-          int match = str.charAt(pos++);
+          int match = pos+1 < str.length() ? str.charAt(pos++) : 0;
+
+          // handle skipped symbols
+          if (i+1 < pattern.length())
+          {
+            int next = pattern.charAt(i+1);
+            if (next == 'F' || next == 'S')
+            {
+              if (match != c) { skippedLast = true;  break; }
+            }
+          }
+
+          skippedLast = false;
           if (match != c)
             throw new RuntimeException("Expected '" + (char)c + "' literal char, not '" + (char)match + "' [pos " + pos +"]");
       }

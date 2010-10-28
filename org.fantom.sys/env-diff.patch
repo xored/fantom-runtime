@@ -1,0 +1,353 @@
+### Eclipse Workspace Patch 1.0
+#P org.fantom.sys
+Index: plugin-src/org/fantom/internal/sys/EquinoxEnv.java
+===================================================================
+RCS file: /cvsroot/fantom/runtime/org.fantom.sys/plugin-src/org/fantom/internal/sys/EquinoxEnv.java,v
+retrieving revision 1.1
+diff -u -r1.1 EquinoxEnv.java
+--- plugin-src/org/fantom/internal/sys/EquinoxEnv.java	26 Jul 2010 11:34:19 -0000	1.1
++++ plugin-src/org/fantom/internal/sys/EquinoxEnv.java	26 Oct 2010 11:53:12 -0000
+@@ -1,20 +1,14 @@
+ package org.fantom.internal.sys;
+ 
+ import java.io.File;
+-import java.util.EventObject;
+ import java.util.HashMap;
+ import java.util.Map;
+ 
+-import org.eclipse.osgi.util.NLS;
+-import org.fantom.FantomVM;
+ import org.fantom.internal.core.Pod;
+ 
+ import fan.sys.Env;
+ import fan.sys.List;
+-import fan.sys.Method;
+-import fan.sys.PodEvent;
+ import fan.sys.Sys;
+-import fan.sys.Type;
+ import fan.sys.UnknownPodErr;
+ import fan.sys.UnresolvedErr;
+ 
+@@ -60,74 +54,22 @@
+   }
+ 
+   @Override
+-  public ClassLoader getExtClassLoader(String podName)
++  public ClassLoader getJavaClassLoader(String callingPod)
+   {
+-    final Pod pod = pods.get(podName);
++    final Pod pod = pods.get(callingPod);
+     if (pod != null)
+     {
+       return pod;
+     }
+     else
+     {
+-      return super.getExtClassLoader(podName);
++      return super.getJavaClassLoader(callingPod);
+     }
+   }
+-
++  
+   @Override
+-  public void fireEvent(EventObject event)
+-  {
+-    super.fireEvent(event);
+-    if (FantomVM.DEBUG)
+-      System.out.println(event);
+-    if (event instanceof PodEvent)
+-    {
+-      final PodEvent podEvent = (PodEvent) event;
+-      if (podEvent.kind() == PodEvent.STARTED)
+-      {
+-        callActivator(podEvent);
+-      }
+-    }
+-  }
+-
+-  private void callActivator(final PodEvent podEvent)
++  public Class loadJavaClass(String className, String loadingPod) throws Exception
+   {
+-    final Pod pod = pods.get(podEvent.podName());
+-    if (pod == null || pod.getActivator() == null)
+-    {
+-      return;
+-    }
+-    final Type activatorType = podEvent.pod().type(pod.getActivator(), false);
+-    if (activatorType == null)
+-    {
+-      Activator.error(NLS.bind("Activator \"{0}\" not found in pod {1}", pod
+-          .getActivator(), podEvent.podName()));
+-      return;
+-    }
+-    final Method startMethod = activatorType.method("start", false);
+-    if (startMethod == null)
+-    {
+-      Activator.error(NLS.bind(
+-          "Method start() not found in activator \"{0}\" of {1}", pod
+-              .getActivator(), podEvent.podName()));
+-      return;
+-    }
+-    try
+-    {
+-      if (startMethod.isStatic())
+-      {
+-        startMethod.call();
+-      }
+-      else
+-      {
+-        Object activator = activatorType.make();
+-        startMethod.callOn(activator, null);
+-      }
+-    }
+-    catch (Exception e)
+-    {
+-      Activator.error(NLS.bind("Error executing activator \"{0}\" of {1}", pod
+-          .getActivator(), podEvent.podName()), e);
+-      return;
+-    }
++    return getJavaClassLoader(loadingPod).loadClass(className);
+   }
+ }
+Index: src/fan/sys/BootEnv.java
+===================================================================
+RCS file: /cvsroot/fantom/runtime/org.fantom.sys/src/fan/sys/BootEnv.java,v
+retrieving revision 1.1.2.1
+diff -u -r1.1.2.1 BootEnv.java
+--- src/fan/sys/BootEnv.java	26 Oct 2010 08:05:32 -0000	1.1.2.1
++++ src/fan/sys/BootEnv.java	26 Oct 2010 11:53:12 -0000
+@@ -228,7 +228,7 @@
+     }
+   }
+ 
+-  public Class loadJavaClass(String className)
++  public Class loadJavaClass(String className, String callingPod)
+     throws Exception
+   {
+     // handle primitives, these don't get handled by URLClassLoader
+@@ -247,8 +247,15 @@
+     }
+ 
+     // route to extention classloader
+-    return FanClassLoader.extClassLoader.loadClass(className);
++    return getJavaClassLoader(callingPod).loadClass(className);
+   }
++  
++  @Override
++  public ClassLoader getJavaClassLoader(String pod)
++  {
++    return FanClassLoader.extClassLoader;
++  }
++
+ 
+ //////////////////////////////////////////////////////////////////////////
+ // Fields
+Index: src/fan/sys/Env.java
+===================================================================
+RCS file: /cvsroot/fantom/runtime/org.fantom.sys/src/fan/sys/Env.java,v
+retrieving revision 1.1.2.1
+diff -u -r1.1.2.1 Env.java
+--- src/fan/sys/Env.java	26 Oct 2010 08:05:34 -0000	1.1.2.1
++++ src/fan/sys/Env.java	26 Oct 2010 11:53:12 -0000
+@@ -201,10 +201,15 @@
+    * Load the Java class of a FFI JavaType.
+    * Default implementation delegates to parent.
+    */
+-  public Class loadJavaClass(String className)
++  public Class loadJavaClass(String className, String callingPod)
+     throws Exception
+   {
+-    return parent.loadJavaClass(className);
++    return parent.loadJavaClass(className, callingPod);
++  }
++
++  public ClassLoader getJavaClassLoader(String callingPod) 
++  {
++    return parent.getJavaClassLoader(callingPod);
+   }
+ 
+   /**
+@@ -240,7 +245,7 @@
+    * The JavaType will delegate to `loadJavaClass` when it is time
+    * to load the Java class mapped by the FFI type.
+    */
+-  public final JavaType loadJavaType(String podName, String typeName)
++  public final JavaType loadJavaType(String podName, String typeName, String callingPod)
+   {
+     // we shouldn't be using this method for pure Fantom types
+     if (!podName.startsWith("[java]"))
+@@ -260,7 +265,7 @@
+       if (t != null) return t;
+ 
+       // create a new one
+-      t = new JavaType(this, podName, typeName);
++      t = new JavaType(this, podName, typeName, callingPod);
+       javaTypeCache.put(clsName, t);
+       return t;
+     }
+Index: src/fan/sys/FanClassLoader.java
+===================================================================
+RCS file: /cvsroot/fantom/runtime/org.fantom.sys/src/fan/sys/FanClassLoader.java,v
+retrieving revision 1.1.2.1
+diff -u -r1.1.2.1 FanClassLoader.java
+--- src/fan/sys/FanClassLoader.java	26 Oct 2010 08:05:30 -0000	1.1.2.1
++++ src/fan/sys/FanClassLoader.java	26 Oct 2010 11:53:12 -0000
+@@ -29,7 +29,7 @@
+ 
+   public FanClassLoader(Pod  pod)
+   {
+-    super(new URL[0], extClassLoader);
++    super(new URL[0], pod.name == "sys" ? FanClassLoader.class.getClassLoader() : Env.cur().getJavaClassLoader(pod.name));
+     try
+     {
+       this.pod = pod;
+Index: src/fan/sys/JavaType.java
+===================================================================
+RCS file: /cvsroot/fantom/runtime/org.fantom.sys/src/fan/sys/JavaType.java,v
+retrieving revision 1.1.2.1
+diff -u -r1.1.2.1 JavaType.java
+--- src/fan/sys/JavaType.java	26 Oct 2010 08:05:33 -0000	1.1.2.1
++++ src/fan/sys/JavaType.java	26 Oct 2010 11:53:12 -0000
+@@ -24,12 +24,13 @@
+ // Constructor
+ //////////////////////////////////////////////////////////////////////////
+ 
+-  JavaType(Env env, String podName, String typeName)
++  JavaType(Env env, String podName, String typeName, String callingPod)
+   {
+     this.env = env;
+     this.podName = podName;
+     this.typeName = typeName;
+     this.cls = null;
++    this.callingPod = callingPod;
+   }
+ 
+   JavaType(Env env, Class cls)
+@@ -127,7 +128,7 @@
+     try
+     {
+       if (cls == null)
+-        cls = env.loadJavaClass(toClassName(podName, typeName));
++        cls = env.loadJavaClass(toClassName(podName, typeName), callingPod);
+       return cls;
+     }
+     catch (Exception e)
+@@ -549,6 +550,7 @@
+   private Env env;             // ctor
+   private String podName;      // ctor
+   private String typeName;     // ctor
++  private String callingPod;   // ctor
+   private Type nullable;       // toNullable()
+   private Class cls;           // init()
+   private int flags = -1;      // init()
+Index: src/fan/sys/NullableType.java
+===================================================================
+RCS file: /cvsroot/fantom/runtime/org.fantom.sys/src/fan/sys/NullableType.java,v
+retrieving revision 1.1
+diff -u -r1.1 NullableType.java
+--- src/fan/sys/NullableType.java	26 Jul 2010 11:34:15 -0000	1.1
++++ src/fan/sys/NullableType.java	26 Oct 2010 11:53:12 -0000
+@@ -41,6 +41,7 @@
+   }
+ 
+   public Pod pod() { return root.pod(); }
++  public String podName() { return root.podName(); }
+   public String name() { return root.name(); }
+   public String qname() { return root.qname(); }
+   public String signature() { return signature; }
+Index: src/fan/sys/Pod.java
+===================================================================
+RCS file: /cvsroot/fantom/runtime/org.fantom.sys/src/fan/sys/Pod.java,v
+retrieving revision 1.1.2.1
+diff -u -r1.1.2.1 Pod.java
+--- src/fan/sys/Pod.java	26 Oct 2010 08:05:28 -0000	1.1.2.1
++++ src/fan/sys/Pod.java	26 Oct 2010 11:53:12 -0000
+@@ -465,7 +465,7 @@
+     String typeName = ref.typeName;
+     if (podName.startsWith("[java]"))
+     {
+-      Type t = Env.cur().loadJavaType(podName, typeName);
++      Type t = Env.cur().loadJavaType(podName, typeName, name);
+       if (ref.isNullable()) t = t.toNullable();
+       return t;
+     }
+Index: src/fan/sys/Type.java
+===================================================================
+RCS file: /cvsroot/fantom/runtime/org.fantom.sys/src/fan/sys/Type.java,v
+retrieving revision 1.1.2.1
+diff -u -r1.1.2.1 Type.java
+--- src/fan/sys/Type.java	26 Oct 2010 08:05:35 -0000	1.1.2.1
++++ src/fan/sys/Type.java	26 Oct 2010 11:53:12 -0000
+@@ -50,7 +50,14 @@
+ 
+   public Type typeof() { return Sys.TypeType; }
+ 
+-  public String podName() { return pod().name(); }
++  public String podName() 
++  {
++    if(pod() == null)
++    {
++      int breakpoint = 1;
++    }
++    return pod().name(); 
++  }
+   public abstract Pod pod();
+   public abstract String name();
+   public abstract String qname();
+Index: src/fanx/emit/FFacetEmit.java
+===================================================================
+RCS file: /cvsroot/fantom/runtime/org.fantom.sys/src/fanx/emit/Attic/FFacetEmit.java,v
+retrieving revision 1.1.2.1
+diff -u -r1.1.2.1 FFacetEmit.java
+--- src/fanx/emit/FFacetEmit.java	26 Oct 2010 08:05:39 -0000	1.1.2.1
++++ src/fanx/emit/FFacetEmit.java	26 Oct 2010 11:53:12 -0000
+@@ -270,7 +270,7 @@
+     throws Exception
+   {
+     if (curClass == null)
+-      curClass = Env.cur().loadJavaClass(curType.jname().replace("/", "."));
++      curClass = Env.cur().loadJavaClass(curType.jname().replace("/", "."), pod.podName);
+     return curClass;
+   }
+ 
+Index: src/fanx/emit/FPodEmit.java
+===================================================================
+RCS file: /cvsroot/fantom/runtime/org.fantom.sys/src/fanx/emit/FPodEmit.java,v
+retrieving revision 1.1.2.1
+diff -u -r1.1.2.1 FPodEmit.java
+--- src/fanx/emit/FPodEmit.java	26 Oct 2010 08:05:40 -0000	1.1.2.1
++++ src/fanx/emit/FPodEmit.java	26 Oct 2010 11:53:12 -0000
+@@ -58,7 +58,7 @@
+     for (int i=0; i<fpod.typeRefs.size(); ++i)
+     {
+       FTypeRef t = fpod.typeRef(i);
+-      if (t.isFFI()) cls.getField("Type" + i).set(null, Env.cur().loadJavaType(t.podName, t.typeName));
++      if (t.isFFI()) cls.getField("Type" + i).set(null, Env.cur().loadJavaType(t.podName, t.typeName, fpod.podName));
+     }
+   }
+ 
+Index: src/fanx/util/TypeParser.java
+===================================================================
+RCS file: /cvsroot/fantom/runtime/org.fantom.sys/src/fanx/util/TypeParser.java,v
+retrieving revision 1.1.2.1
+diff -u -r1.1.2.1 TypeParser.java
+--- src/fanx/util/TypeParser.java	26 Oct 2010 08:05:42 -0000	1.1.2.1
++++ src/fanx/util/TypeParser.java	26 Oct 2010 11:53:12 -0000
+@@ -57,7 +57,7 @@
+ 
+       // if podName starts with [java] this is a direct Java type
+       if (podName.charAt(0) == '[')
+-        return Env.cur().loadJavaType(podName, typeName);
++        return Env.cur().loadJavaType(podName, typeName, loadingPod == null ? "sys" : loadingPod.name());
+ 
+       // if the type is from the pod being loaded then return to the pod
+       if (loadingPod != null && podName.equals(loadingPod.name()))
+@@ -222,7 +222,7 @@
+     while (isIdChar(cur)) consume();
+     String typeName = sig.substring(start, pos);
+ 
+-    return Env.cur().loadJavaType(podName, typeName);
++    return Env.cur().loadJavaType(podName, typeName, loadingPod == null ? "sys" : loadingPod.name());
+   }
+ 
+   private Type loadBasic()

@@ -228,10 +228,34 @@ public class BootEnv
     }
   }
 
-  public ClassLoader getExtClassLoader(String podName)
+  public Class loadJavaClass(String className, String callingPod)
+    throws Exception
+  {
+    // handle primitives, these don't get handled by URLClassLoader
+    if (className.charAt(0) == '[' && className.length() == 2)
+    {
+      switch (className.charAt(1))
+      {
+        case 'Z': return boolean[].class;
+        case 'B': return byte[].class;
+        case 'S': return short[].class;
+        case 'I': return int[].class;
+        case 'J': return long[].class;
+        case 'F': return float[].class;
+        case 'D': return double[].class;
+      }
+    }
+
+    // route to extention classloader
+    return getJavaClassLoader(callingPod).loadClass(className);
+  }
+  
+  @Override
+  public ClassLoader getJavaClassLoader(String pod)
   {
     return FanClassLoader.extClassLoader;
   }
+
 
 //////////////////////////////////////////////////////////////////////////
 // Fields
