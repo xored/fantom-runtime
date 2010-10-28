@@ -3,5 +3,5 @@ Bundle-ManifestVersion: 2
 Bundle-Name: CompilerJs
 Bundle-SymbolicName: org.fantom.compilerJs;singleton:=true
 Bundle-Version: 1.0.55.qualifier
-Require-Bundle: org.fantom.sys;bundle-version="1.0.52",
+Require-Bundle: org.fantom.sys;bundle-version="1.0.55",
  org.fantom.compiler;bundle-version="1.0.55"

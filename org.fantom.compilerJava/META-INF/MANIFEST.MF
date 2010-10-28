@@ -3,5 +3,5 @@ Bundle-ManifestVersion: 2
 Bundle-Name: CompilerJava
 Bundle-SymbolicName: org.fantom.compilerJava;singleton:=true
 Bundle-Version: 1.0.55.qualifier
-Require-Bundle: org.fantom.sys;bundle-version="1.0.52",
- org.fantom.compiler;bundle-version="1.0.0"
+Require-Bundle: org.fantom.sys;bundle-version="1.0.55",
+ org.fantom.compiler;bundle-version="1.0.55"

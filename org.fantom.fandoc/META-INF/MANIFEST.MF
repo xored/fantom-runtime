@@ -4,4 +4,4 @@ Bundle-Name: Fandoc pod
 Bundle-SymbolicName: org.fantom.fandoc;singleton:=true
 Bundle-Version: 1.0.55.qualifier
 Bundle-Vendor: Fantom.org
-Require-Bundle: org.fantom.sys;bundle-version="1.0.52"
+Require-Bundle: org.fantom.sys;bundle-version="1.0.55"

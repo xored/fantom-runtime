@@ -15,6 +15,6 @@ Export-Package: fan.sys,
  fanx.tools,
  fanx.util
 Require-Bundle: org.eclipse.core.runtime,
- org.fantom;bundle-version="1.0.52";visibility:=reexport
+ org.fantom;bundle-version="1.0.55";visibility:=reexport
 Bundle-Activator: org.fantom.internal.sys.Activator
 Bundle-ActivationPolicy: lazy
