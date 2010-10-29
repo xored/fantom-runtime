@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: Fantom webmod pod
+Bundle-Name: Standard library of WebMods
 Bundle-SymbolicName: org.fantom.webmod;singleton:=true
 Bundle-Version: 1.0.55.qualifier
 Require-Bundle: org.fantom.sys;bundle-version="1.0.55",
