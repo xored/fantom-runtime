@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: Fantom wisp mod
+Bundle-Name: Wisp web Server
 Bundle-SymbolicName: org.fantom.wisp;singleton:=true
 Bundle-Version: 1.0.55.qualifier
 Require-Bundle: org.fantom.sys;bundle-version="1.0.55",
