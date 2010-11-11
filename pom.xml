@@ -36,7 +36,7 @@
 		<repository>
 			<id>helios</id>
 			<layout>p2</layout>
-			<url>http://download.eclipse.org/releases/helios/</url>
+			<url>http://download.xored.com/releases/helios/</url>
 		</repository>
 	</repositories>
   
