@@ -26,37 +26,47 @@
     <module>org.fantom.wisp</module>
   </modules>
   
+	<properties>
+		<tycho-version>0.10.0</tycho-version>
+		<tycho-groupid>org.sonatype.tycho</tycho-groupid>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+  
 	<repositories>
 		<repository>
 			<id>helios</id>
 			<layout>p2</layout>
 			<url>http://download.eclipse.org/releases/helios/</url>
 		</repository>
-		<!-- repository>
-			<id>galileoTest</id>
-			<layout>p2</layout>
-			<url>file:/Users/Pascal/Downloads/eclipse-testing/eclipse-junit-tests-I20100312-0800</url>
-		</repository -->
 	</repositories>
   
   <build>
 		<plugins>
 			<plugin>
-				<groupId>org.sonatype.tycho</groupId>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.3.2</version>
+			</plugin>
+			<plugin>
+				<groupId>${tycho-groupid}</groupId>
 				<artifactId>tycho-maven-plugin</artifactId>
-				<version>0.9.0</version>
+				<version>${tycho-version}</version>
 				<extensions>true</extensions>
+			</plugin>
+			<plugin>
+				<groupId>${tycho-groupid}</groupId>
+				<artifactId>maven-osgi-compiler-plugin</artifactId>
+				<version>${tycho-version}</version>
 			</plugin>
 			
 			<plugin>
 				<groupId>org.sonatype.tycho</groupId>
 				<artifactId>target-platform-configuration</artifactId>
-				<version>0.9.0</version>
+				<version>${tycho-version}</version>
 				<configuration>
 					<resolver>p2</resolver>
 				</configuration>
 			</plugin>
-			
 		</plugins>
   </build>
 </project>
