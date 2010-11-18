@@ -24,12 +24,13 @@ public class JavaType
 // Constructor
 //////////////////////////////////////////////////////////////////////////
 
-  JavaType(Env env, String podName, String typeName)
+  JavaType(Env env, String podName, String typeName, String callingPod)
   {
     this.env = env;
     this.podName = podName;
     this.typeName = typeName;
     this.cls = null;
+    this.callingPod = callingPod;
   }
 
   JavaType(Env env, Class cls)
@@ -127,7 +128,7 @@ public class JavaType
     try
     {
       if (cls == null)
-        cls = env.loadJavaClass(toClassName(podName, typeName));
+        cls = env.loadJavaClass(toClassName(podName, typeName), callingPod);
       return cls;
     }
     catch (Exception e)
@@ -539,6 +540,7 @@ public class JavaType
   private Env env;             // ctor
   private String podName;      // ctor
   private String typeName;     // ctor
+  private String callingPod;   // ctor
   private Type nullable;       // toNullable()
   private Class cls;           // init()
   private int flags = -1;      // init()

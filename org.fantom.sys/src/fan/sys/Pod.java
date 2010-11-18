@@ -475,7 +475,7 @@ public class Pod
     String typeName = ref.typeName;
     if (podName.startsWith("[java]"))
     {
-      Type t = Env.cur().loadJavaType(podName, typeName);
+      Type t = Env.cur().loadJavaType(podName, typeName, name);
       if (ref.isNullable()) t = t.toNullable();
       return t;
     }
