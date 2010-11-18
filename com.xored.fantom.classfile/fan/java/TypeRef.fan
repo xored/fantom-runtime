@@ -123,7 +123,7 @@ const class TypeRef
       return canonicalName
 
     if (isArray)
-      return elemType + arrayBraces
+      return "${elemType}$arrayBraces"
 
     if (isPrimitive)
       return names[descr[0]]
