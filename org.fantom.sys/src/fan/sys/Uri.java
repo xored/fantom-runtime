@@ -461,10 +461,21 @@ public final class Uri
 
     private void addQueryParam(Map map, String q, int start, int eq, int end, boolean escaped)
     {
+      String key, val;
       if (start == eq && q.charAt(start) != '=')
-        map.set(toQueryStr(q, start, end, escaped), "true");
+      {
+        key = toQueryStr(q, start, end, escaped);
+        val = "true";
+      }
       else
-        map.set(toQueryStr(q, start, eq, escaped), toQueryStr(q, eq+1, end, escaped));
+      {
+        key = toQueryStr(q, start, eq, escaped);
+        val = toQueryStr(q, eq+1, end, escaped);
+      }
+
+      String dup = (String)map.get(key);
+      if (dup != null) val = dup + "," + val;
+      map.set(key, val);
     }
 
     private String toQueryStr(String q, int start, int end, boolean escaped)
@@ -904,7 +915,9 @@ public final class Uri
   }
 
   public Uri slice(Range range) { return slice(range, false); }
+  public Uri getRange(Range range) { return slice(range, false); }
 
+  public Uri getRangeToPathAbs(Range range) { return slice(range, true); }
   public Uri sliceToPathAbs(Range range) { return slice(range, true); }
 
   private Uri slice(Range range, boolean forcePathAbs)

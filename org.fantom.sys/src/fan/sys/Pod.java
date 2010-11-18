@@ -99,7 +99,7 @@ public class Pod
     {
       e.printStackTrace();
       if (!checked) return null;
-      throw UnknownPodErr.make(name, e).val;
+      throw UnknownPodErr.make(name, Err.make(e)).val;
     }
   }
 
@@ -139,7 +139,7 @@ public class Pod
     // otherwise if we are running with JarDistEnv use my own classloader
     if (Sys.isJarDist)
     {
-      store = FStore.makeJarDist(Pod.class.getClassLoader());
+      store = FStore.makeJarDist(Pod.class.getClassLoader(), name);
     }
 
     // handle sys specially for bootstrapping the VM
@@ -331,7 +331,17 @@ public class Pod
     synchronized (filesMap)
     {
       if (filesList != null) return;
-      this.filesList = (List)fpod.store.podFiles(uri()).toImmutable();
+      if (fpod.store == null) throw Err.make("Not backed by pod file: " + name).val;
+      List list;
+      try
+      {
+        this.filesList = (List)fpod.store.podFiles(uri()).toImmutable();
+      }
+      catch (java.io.IOException e)
+      {
+        e.printStackTrace();
+        throw Err.make(e).val;
+      }
       for (int i=0; i<filesList.sz(); ++i)
       {
         fan.sys.File f = (fan.sys.File)filesList.get(i);
@@ -465,7 +475,7 @@ public class Pod
     String typeName = ref.typeName;
     if (podName.startsWith("[java]"))
     {
-      Type t = Env.cur().loadJavaType(podName, typeName, name);
+      Type t = Env.cur().loadJavaType(podName, typeName);
       if (ref.isNullable()) t = t.toNullable();
       return t;
     }

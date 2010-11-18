@@ -40,8 +40,8 @@ public class NullableType
     return false;
   }
 
-  public Pod pod() { return root.pod(); }
   public String podName() { return root.podName(); }
+  public Pod pod() { return root.pod(); }
   public String name() { return root.name(); }
   public String qname() { return root.qname(); }
   public String signature() { return signature; }

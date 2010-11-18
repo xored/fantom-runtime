@@ -24,13 +24,12 @@ public class JavaType
 // Constructor
 //////////////////////////////////////////////////////////////////////////
 
-  JavaType(Env env, String podName, String typeName, String callingPod)
+  JavaType(Env env, String podName, String typeName)
   {
     this.env = env;
     this.podName = podName;
     this.typeName = typeName;
     this.cls = null;
-    this.callingPod = callingPod;
   }
 
   JavaType(Env env, Class cls)
@@ -128,7 +127,7 @@ public class JavaType
     try
     {
       if (cls == null)
-        cls = env.loadJavaClass(toClassName(podName, typeName), callingPod);
+        cls = env.loadJavaClass(toClassName(podName, typeName));
       return cls;
     }
     catch (Exception e)
@@ -269,15 +268,7 @@ public class JavaType
 
     // map Java transients to facets
     if (Modifier.isTransient(java.getModifiers()))
-    {
-      if (transientFacets == null)
-      {
-        HashMap m = new HashMap();
-        m.put(Sys.TransientType, "");
-        transientFacets = new Facets(m);
-      }
-      facets = transientFacets;
-    }
+      facets = Facets.makeTransient();
 
     // map Java enum constants as Fantom enum constants
     if (java.isEnumConstant()) flags |= FConst.Enum;
@@ -537,8 +528,6 @@ public class JavaType
 // Fields
 //////////////////////////////////////////////////////////////////////////
 
-  private static Facets transientFacets;
-
 /*
   public static final JavaType ByteType  = make(byte.class);
   public static final JavaType ShortType = make(short.class);
@@ -550,7 +539,6 @@ public class JavaType
   private Env env;             // ctor
   private String podName;      // ctor
   private String typeName;     // ctor
-  private String callingPod;   // ctor
   private Type nullable;       // toNullable()
   private Class cls;           // init()
   private int flags = -1;      // init()

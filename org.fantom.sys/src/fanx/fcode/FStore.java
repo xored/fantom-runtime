@@ -38,10 +38,13 @@ public abstract class FStore
 
   /**
    * Construct a FStore to read from a JAR's ClassLoader resources.
+   * If podName doesn't exist then throw UnknownPodErr.
    */
-  public static FStore makeJarDist(ClassLoader loader)
+  public static FStore makeJarDist(ClassLoader loader, String podName)
   {
-    return new JarDistStore(loader);
+    JarDistStore store = new JarDistStore(loader);
+    if (store.hasPod(podName)) return store;
+    throw UnknownPodErr.make(podName).val;
   }
 
 //////////////////////////////////////////////////////////////////////////
@@ -51,7 +54,8 @@ public abstract class FStore
   /**
    * Return a list to use for Pod.files()
    */
-  public abstract List podFiles(Uri podUri);
+  public abstract List podFiles(Uri podUri)
+      throws IOException;
 
   /**
    * Convenience for read(path, false).
@@ -185,10 +189,31 @@ public abstract class FStore
   {
     JarDistStore(ClassLoader loader) { this.loader = loader; }
 
-    public List podFiles(Uri podUri)
+    public boolean hasPod(String podName)
     {
+      String path = "reflect/" + podName + "/meta.props";
+      InputStream in = loader.getResourceAsStream(path);
+      if (in == null) return false;
+      try { in.close(); } catch (Exception e) {}
+      return true;
+    }
+
+    public List podFiles(Uri podUri)
+      throws IOException
+    {
+      // JarDist build task generated "{res/pod}/res-manifiest.txt"
+      String manifestPath = "res/" + fpod.podName + "/res-manifest.txt";
+      BufferedReader in = new BufferedReader(new InputStreamReader(loader.getResourceAsStream(manifestPath)));
+      String line;
       List list = new List(Sys.FileType);
-      System.out.println("TODO JarStore.podFiles " + fpod.podName);
+      while ((line = in.readLine()) != null)
+      {
+        if (line.length() == 0) continue;
+        Uri uri = Uri.fromStr(podUri.toString() + line);
+        String loaderPath = "res/" + fpod.podName + line;
+        File file = new ClassLoaderFile(loader, loaderPath, uri);
+        list.add(file);
+      }
       return list;
     }
 

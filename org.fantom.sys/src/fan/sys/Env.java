@@ -201,15 +201,10 @@ public abstract class Env
    * Load the Java class of a FFI JavaType.
    * Default implementation delegates to parent.
    */
-  public Class loadJavaClass(String className, String callingPod)
+  public Class loadJavaClass(String className)
     throws Exception
   {
-    return parent.loadJavaClass(className, callingPod);
-  }
-
-  public ClassLoader getJavaClassLoader(String callingPod) 
-  {
-    return parent.getJavaClassLoader(callingPod);
+    return parent.loadJavaClass(className);
   }
 
   /**
@@ -245,7 +240,7 @@ public abstract class Env
    * The JavaType will delegate to `loadJavaClass` when it is time
    * to load the Java class mapped by the FFI type.
    */
-  public final JavaType loadJavaType(String podName, String typeName, String callingPod)
+  public final JavaType loadJavaType(String podName, String typeName)
   {
     // we shouldn't be using this method for pure Fantom types
     if (!podName.startsWith("[java]"))
@@ -265,7 +260,7 @@ public abstract class Env
       if (t != null) return t;
 
       // create a new one
-      t = new JavaType(this, podName, typeName, callingPod);
+      t = new JavaType(this, podName, typeName);
       javaTypeCache.put(clsName, t);
       return t;
     }

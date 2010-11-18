@@ -111,7 +111,8 @@ public final class Date
 
   public final String toStr()
   {
-    return toLocale("YYYY-MM-DD");
+    if (str == null) str = toLocale("YYYY-MM-DD");
+    return str;
   }
 
   public Type typeof()
@@ -179,10 +180,12 @@ public final class Date
 // Past/Future
 //////////////////////////////////////////////////////////////////////////
 
-  public final Date plus(Duration d)
+  public final Date plus(Duration d) { return plus(d.ticks()); }
+  public final Date minus(Duration d) { return plus(-d.ticks()); }
+
+  private Date plus(long ticks)
   {
     // check even number of days
-    long ticks = d.ticks;
     if (ticks % Duration.nsPerDay != 0)
       throw ArgErr.make("Duration must be even num of days").val;
 
@@ -221,7 +224,7 @@ public final class Date
     return new Date(year, month, day);
   }
 
-  public final Duration minus(Date that)
+  public final Duration minusDate(Date that)
   {
     // short circuit if equal
     if (this.equals(that)) return Duration.Zero;
@@ -304,5 +307,6 @@ public final class Date
   final short year;
   final byte month;
   final byte day;
+  private String str;
 
 }

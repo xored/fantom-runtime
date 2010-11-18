@@ -50,14 +50,7 @@ public abstract class Type
 
   public Type typeof() { return Sys.TypeType; }
 
-  public String podName() 
-  {
-    if(pod() == null)
-    {
-      int breakpoint = 1;
-    }
-    return pod().name(); 
-  }
+  public String podName() { return pod().name(); }
   public abstract Pod pod();
   public abstract String name();
   public abstract String qname();

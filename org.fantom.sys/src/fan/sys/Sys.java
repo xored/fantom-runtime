@@ -105,6 +105,7 @@ public final class Sys
   public static final Type MmapBufType      = initType("MmapBuf");
   public static final Type UriType          = initType("Uri");
   public static final Type ZipType          = initType("Zip");
+  public static final Type ClassLoaderFileType = initType("ClassLoaderFile");
 
   // utils
   public static final Type DependType       = initType("Depend");
@@ -133,6 +134,8 @@ public final class Sys
   public static final Type JsType             = initType("Js");
   public static final Type NoDocType          = initType("NoDoc");
   public static final Type DeprecatedType     = initType("Deprecated");
+  public static final Type OperatorType       = initType("Operator");
+  public static final Type FacetMetaType      = initType("FacetMeta");
 
   // exceptions
   public static final Type ErrType               = initType("Err");
