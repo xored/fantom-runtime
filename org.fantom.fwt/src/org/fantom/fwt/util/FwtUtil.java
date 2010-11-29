@@ -7,7 +7,7 @@ import org.eclipse.swt.widgets.Widget;
 
 public class FwtUtil {
 
-	public static void addToSwt(Object fanControl, Widget swtParent)
+	public static void addToSwt(Object fanControl, Object swtParent)
 			throws Exception {
 		Object peer = getPeer(fanControl);
 		findMethod(peer).invoke(peer, fanControl, swtParent);
