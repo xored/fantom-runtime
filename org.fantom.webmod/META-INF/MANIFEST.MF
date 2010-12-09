@@ -2,8 +2,8 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Standard library of WebMods
 Bundle-SymbolicName: org.fantom.webmod;singleton:=true
-Bundle-Version: 1.0.55.qualifier
-Require-Bundle: org.fantom.sys;bundle-version="1.0.55",
- org.fantom.inet;bundle-version="1.0.55",
- org.fantom.web;bundle-version="1.0.55",
- org.fantom.util;bundle-version="1.0.55"
+Bundle-Version: 1.0.56.qualifier
+Require-Bundle: org.fantom.sys;bundle-version="1.0.56",
+ org.fantom.inet;bundle-version="1.0.56",
+ org.fantom.web;bundle-version="1.0.56",
+ org.fantom.util;bundle-version="1.0.56"
