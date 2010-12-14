@@ -24,6 +24,11 @@
     <module>org.fantom.web</module>
     <module>org.fantom.webmod</module>
     <module>org.fantom.wisp</module>
+    
+    
+    <!-- Embedded -->
+	<module>com.xored.f4.fantom-feature</module>
+	<module>com.xored.f4.fantom</module>
   </modules>
   
 	<properties>
