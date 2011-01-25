@@ -1,87 +1,122 @@
-### Eclipse Workspace Patch 1.0
-#P org.fantom.fwt
-Index: source/fan/Canvas.fan
-===================================================================
-RCS file: /cvsroot/fantom/runtime/org.fantom.fwt/source/fan/Canvas.fan,v
-retrieving revision 1.2.2.1
-diff -u -r1.2.2.1 Canvas.fan
---- source/fan/Canvas.fan	27 Oct 2010 06:14:05 -0000	1.2.2.1
-+++ source/fan/Canvas.fan	27 Oct 2010 06:27:07 -0000
-@@ -22,7 +22,9 @@
-   ** with the clip bounds set to the widget's size.
+diff -r b5aed36081cf src/fwt/fan/Desktop.fan
+--- a/src/fwt/fan/Desktop.fan	Wed Nov 17 19:21:45 2010 +0600
++++ b/src/fwt/fan/Desktop.fan	Tue Jan 25 18:41:38 2011 +0600
+@@ -51,7 +51,7 @@
+   ** on the UI thread, then it is ok for the function to be
+   ** mutable.
    **
-   **
--  virtual Void onPaint(Graphics g) {}
-+  virtual Void onPaint(Graphics g, Int x, Int y, Int w, Int h) {}
-+
-+//  public native Rect? dirty()
+-  static native Void callAsync(|->| f)
++  static native Void callAsync(|->| f, Duration delay := 0ms)
  
-   // to force native peer
-   private native Void dummyCanvas()
-Index: source/fan/FwtEnv.fan
-===================================================================
-RCS file: /cvsroot/fantom/runtime/org.fantom.fwt/source/fan/FwtEnv.fan,v
-retrieving revision 1.1.2.1
-diff -u -r1.1.2.1 FwtEnv.fan
---- source/fan/FwtEnv.fan	27 Oct 2010 06:14:05 -0000	1.1.2.1
-+++ source/fan/FwtEnv.fan	27 Oct 2010 06:27:07 -0000
-@@ -23,5 +23,8 @@
+ //////////////////////////////////////////////////////////////////////////
+ // Dispose
+diff -r b5aed36081cf src/fwt/fan/FwtEnv.fan
+--- a/src/fwt/fan/FwtEnv.fan	Wed Nov 17 19:21:45 2010 +0600
++++ b/src/fwt/fan/FwtEnv.fan	Tue Jan 25 18:41:38 2011 +0600
+@@ -23,5 +23,11 @@
    override native Int fontDescent(Font f)
    override native Int fontLeading(Font f)
    override native Int fontWidth(Font f, Str s)
-+  override native Image fontImage(Font f, Str s, Color fg, Color bg)
 +  override native Graphics getImageGraphics(Image image)
 +  override native Image createImage(Size size)
++  override native Str? getFromClipboard()
++  override native Str? getFromSelectionClipboard()
++  override native Void copyToClipboard(Str text)
++  override native Void copyToSelectionClipboard(Str text)
  
  }
 \ No newline at end of file
-Index: source/fan/RichText.fan
-===================================================================
-RCS file: /cvsroot/fantom/runtime/org.fantom.fwt/source/fan/RichText.fan,v
-retrieving revision 1.4.2.1
-diff -u -r1.4.2.1 RichText.fan
---- source/fan/RichText.fan	27 Oct 2010 06:14:05 -0000	1.4.2.1
-+++ source/fan/RichText.fan	27 Oct 2010 06:27:07 -0000
-@@ -127,6 +127,12 @@
-   **
-   native Int tabSpacing
+diff -r b5aed36081cf src/fwt/fan/Slider.fan
+--- /dev/null	Thu Jan 01 00:00:00 1970 +0000
++++ b/src/fwt/fan/Slider.fan	Tue Jan 25 18:41:38 2011 +0600
+@@ -0,0 +1,70 @@
++//
++// Copyright (c) 2009, Brian Frank and Andy Frank
++// Licensed under the Academic Free License version 3.0
++//
++// History:
++//   16 Nov 10  Yuri Strot  Creation
++//
++
++using gfx
++
++**
++** 
++**
++@Js
++@Serializable
++class Slider : Widget
++{
++
++  **
++  ** Default constructor.
++  **
++  new make(|This|? f := null)
++  {
++    if (f != null) f(this)
++  }
++
++  **
++  ** Callback when scroll bar value is modified.
++  **
++  ** Event id fired:
++  **   - `EventId.modified`
++  **
++  ** Event fields:
++  **   - `Event.data`: new value of scroll bar
++  **
++  @Transient readonly EventListeners onModify := EventListeners()
++    { it.onModify = |->| { checkModifyListeners } }
++  internal native Void checkModifyListeners()
++
++  **
++  ** Horizontal or vertical.
++  **
++  const Orientation orientation := Orientation.vertical
++
++  **
++  ** The current value of the slider.
++  **
++  native Int val
++
++  **
++  ** The minimum value of the slider.
++  **
++  native Int min
++
++  **
++  ** The maximum value of the slider.
++  **
++  native Int max
++
++  **
++  ** The size of thumb relative to difference between min and max.
++  **
++  native Int thumb
++
++  **
++  ** Page increment size relative to difference between min and max.
++  **
++  native Int page
++
++}
+\ No newline at end of file
+diff -r b5aed36081cf src/fwt/java/CanvasPeer.java
+--- a/src/fwt/java/CanvasPeer.java	Wed Nov 17 19:21:45 2010 +0600
++++ b/src/fwt/java/CanvasPeer.java	Tue Jan 25 18:41:38 2011 +0600
+@@ -13,9 +13,10 @@
+ import org.eclipse.swt.graphics.GC;
+ import org.eclipse.swt.graphics.Point;
+ import org.eclipse.swt.graphics.Rectangle;
+-import org.eclipse.swt.widgets.*;
+ import org.eclipse.swt.widgets.Widget;
++import org.eclipse.swt.widgets.Control;
+ import org.eclipse.swt.widgets.Canvas;
++import org.eclipse.swt.widgets.Composite;;
+ import org.eclipse.swt.layout.*;
+ import org.eclipse.swt.events.*;
  
-+
-+  **
-+  ** Show or hide the caret
-+  **
-+  native Bool caretVisible
-+
-   **
-   ** The zero based line index which is currently at the
-   ** top of the scrolling viewport.
-@@ -142,6 +148,18 @@
-     set { model.text = it }
-   }
- 
-+  **
-+  ** Returns a rectangle which describes the area of the
-+  ** receiver which is capable of displaying data (that is,
-+  ** not covered by the "trimmings").
-+  **
-+  native Size clientSize()
-+
-+  **
-+  ** Returns the default line height.
-+  **
-+  native Int defaultLineHeight()
-+
- //////////////////////////////////////////////////////////////////////////
- // Utils
- //////////////////////////////////////////////////////////////////////////
-Index: source/java/CanvasPeer.java
-===================================================================
-RCS file: /cvsroot/fantom/runtime/org.fantom.fwt/source/java/CanvasPeer.java,v
-retrieving revision 1.2.2.1
-diff -u -r1.2.2.1 CanvasPeer.java
---- source/java/CanvasPeer.java	27 Oct 2010 06:14:05 -0000	1.2.2.1
-+++ source/java/CanvasPeer.java	27 Oct 2010 06:27:07 -0000
-@@ -35,7 +35,7 @@
+@@ -35,7 +36,7 @@
  
    public Widget create(Widget parent)
    {
@@ -90,46 +125,50 @@ diff -u -r1.2.2.1 CanvasPeer.java
      {
        public void drawBackground(GC gc, int x, int y, int w, int h) {}
      };
-@@ -43,10 +43,17 @@
-     return c;
-   }
+diff -r b5aed36081cf src/fwt/java/DesktopPeer.java
+--- a/src/fwt/java/DesktopPeer.java	Wed Nov 17 19:21:45 2010 +0600
++++ b/src/fwt/java/DesktopPeer.java	Tue Jan 25 18:41:38 2011 +0600
+@@ -63,6 +63,11 @@
  
-+//  private Rect dirtyRect;
-+
-+//  public Rect dirty(fan.fwt.Canvas self) {
-+//    return dirtyRect;
-+//  }
-+
-   public void paintControl(PaintEvent e)
+   public static void callAsync(Func func)
    {
-     FwtGraphics g = new FwtGraphics(e.gc);
--    ((fan.fwt.Canvas)self).onPaint(g);
-+  //  dirtyRect = Rect.make(e.x, e.y, e.width, e.height);  
-+    ((fan.fwt.Canvas)self).onPaint(g, e.x, e.y, e.width, e.height);
++	  callAsync(func, Duration.defVal);
++  }
++
++  public static void callAsync(Func func, Duration delay)
++  {
+     // check if running on UI thread
+     Fwt fwt = Fwt.main();
+     if (java.lang.Thread.currentThread() != fwt.display.getThread())
+@@ -70,7 +75,7 @@
+ 
+     // enqueue on main UI thread's display
+     final Func finalFunc = func;
+-    fwt.display.asyncExec(new Runnable()
++    Runnable runnable = new Runnable()
+     {
+       public void run()
+       {
+@@ -83,7 +88,14 @@
+           e.printStackTrace();
+         }
+       }
+-    });
++    };
++    if (delay.ticks > 0)
++    {
++       fwt.display.timerExec((int)delay.millis(), runnable);
++    } else
++    {
++      fwt.display.asyncExec(runnable);
++    }
    }
  
- }
-\ No newline at end of file
-Index: source/java/Fwt.java
-===================================================================
-RCS file: /cvsroot/fantom/runtime/org.fantom.fwt/source/java/Fwt.java,v
-retrieving revision 1.1.2.1
-diff -u -r1.1.2.1 Fwt.java
---- source/java/Fwt.java	27 Oct 2010 06:14:05 -0000	1.1.2.1
-+++ source/java/Fwt.java	27 Oct 2010 06:27:07 -0000
-@@ -45,8 +45,9 @@
-    */
-   public static Fwt main()
-   {
--    if (mainFwt == null) throw new IllegalStateException("Main UI thread not running");
--    return mainFwt;
-+//    if (mainFwt == null) throw new IllegalStateException("Main UI thread not running");
-+  //  return mainFwt;
-+    return get();
-   }
- 
-   private static volatile Fwt mainFwt;
-@@ -368,7 +369,7 @@
+ //////////////////////////////////////////////////////////////////////////
+diff -r b5aed36081cf src/fwt/java/Fwt.java
+--- a/src/fwt/java/Fwt.java	Wed Nov 17 19:21:45 2010 +0600
++++ b/src/fwt/java/Fwt.java	Tue Jan 25 18:41:38 2011 +0600
+@@ -368,7 +368,7 @@
  // Fields
  //////////////////////////////////////////////////////////////////////////
  
@@ -138,14 +177,28 @@ diff -u -r1.1.2.1 Fwt.java
    HashMap colors = new HashMap();  // Int rgb   -> Color
    HashMap fonts = new HashMap();   // fwt::Font  -> Font
    HashMap images = new HashMap();  // Uri -> Image
-Index: source/java/FwtEnvPeer.java
-===================================================================
-RCS file: /cvsroot/fantom/runtime/org.fantom.fwt/source/java/FwtEnvPeer.java,v
-retrieving revision 1.1.2.1
-diff -u -r1.1.2.1 FwtEnvPeer.java
---- source/java/FwtEnvPeer.java	27 Oct 2010 06:14:05 -0000	1.1.2.1
-+++ source/java/FwtEnvPeer.java	27 Oct 2010 06:27:07 -0000
-@@ -114,4 +114,37 @@
+diff -r b5aed36081cf src/fwt/java/FwtEnvPeer.java
+--- a/src/fwt/java/FwtEnvPeer.java	Wed Nov 17 19:21:45 2010 +0600
++++ b/src/fwt/java/FwtEnvPeer.java	Tue Jan 25 18:41:38 2011 +0600
+@@ -10,12 +10,17 @@
+ import fan.sys.*;
+ import fan.gfx.Size;
+ import org.eclipse.swt.*;
++import org.eclipse.swt.dnd.Clipboard;
++import org.eclipse.swt.dnd.DND;
++import org.eclipse.swt.dnd.TextTransfer;
++import org.eclipse.swt.dnd.Transfer;
+ import org.eclipse.swt.graphics.Color;
+ import org.eclipse.swt.graphics.FontData;
+ import org.eclipse.swt.graphics.GC;
+ import org.eclipse.swt.graphics.Image;
+ import org.eclipse.swt.graphics.ImageData;
+ import org.eclipse.swt.graphics.Rectangle;
++import org.eclipse.swt.widgets.Display;
+ 
+ public class FwtEnvPeer
+ {
+@@ -114,4 +119,67 @@
      return gc;
    }
  
@@ -172,109 +225,191 @@ diff -u -r1.1.2.1 FwtEnvPeer.java
 +    Fwt fwt = Fwt.get();
 +    return new FwtGraphics(new GC(fwt.image(image)));
 +  }
-+  
++
 +  public fan.gfx.Image createImage(FwtEnv self, fan.gfx.Size size) {
-+    Fwt fwt = Fwt.get();
-+    Image img = new Image(fwt.display, (int)size.w, (int)size.h);
++    Image img = new Image(display(), (int)size.w, (int)size.h);
 +    Uri uri = Uri.fromStr("mem-" + Uuid.make());
 +    fan.gfx.Image resultFan = fan.gfx.Image.makeUri(uri);
-+    fwt.images.put(uri, img);
++    Fwt.get().images.put(uri, img);
 +    return resultFan;
++  }
++
++  public String getFromClipboard(FwtEnv self) {
++    return (String) clipboard().getContents(TextTransfer.getInstance());
++  }
++
++  public String getFromSelectionClipboard(FwtEnv self) {
++    return (String) clipboard().getContents(TextTransfer.getInstance(), DND.SELECTION_CLIPBOARD);
++  }
++
++  public void copyToClipboard(FwtEnv self, String text) {
++    Transfer[] transfers = new Transfer[] { TextTransfer.getInstance() };
++    clipboard().setContents(new String[] { text }, transfers);
++  }
++
++  public void copyToSelectionClipboard(FwtEnv self, String text) {
++    Transfer[] transfers = new Transfer[] { TextTransfer.getInstance() };
++    clipboard().setContents(new String[] { text }, transfers, DND.SELECTION_CLIPBOARD);
++  }
++
++  private synchronized Clipboard clipboard() {
++	  if (clipboard == null) {
++		  clipboard = new Clipboard(display());
++	  }
++	  return clipboard;
++  }
++
++  private Clipboard clipboard;
++
++  private static Display display() {
++    return Fwt.get().display;
 +  }
 +
  }
 \ No newline at end of file
-Index: source/java/RichTextPeer.java
-===================================================================
-RCS file: /cvsroot/fantom/runtime/org.fantom.fwt/source/java/RichTextPeer.java,v
-retrieving revision 1.4.2.1
-diff -u -r1.4.2.1 RichTextPeer.java
---- source/java/RichTextPeer.java	27 Oct 2010 06:14:05 -0000	1.4.2.1
-+++ source/java/RichTextPeer.java	27 Oct 2010 06:27:07 -0000
-@@ -75,10 +75,10 @@
- 
-     // this is a hack, but seems to be the only way to set
-     // the margins hidden away as private fields in StyledText
--    setField(t, "leftMargin",   8);
-+    setField(t, "leftMargin",   0);
-     setField(t, "topMargin",    0);
--    setField(t, "rightMargin",  8);
--    setField(t, "bottomMargin", 8);
-+    setField(t, "rightMargin",  0);
-+    setField(t, "bottomMargin", 0);
- 
-     // add myself as key/mouse listener for caret movement
-     t.addKeyListener(new KeyAdapter()
-@@ -113,6 +113,25 @@
- // Fields
- //////////////////////////////////////////////////////////////////////////
- 
-+  public fan.gfx.Size clientSize(RichText w) {
-+    StyledText styled = (StyledText)control;
-+    return size(styled.getClientArea().width, styled.getClientArea().height);
-+  }
+diff -r b5aed36081cf src/fwt/java/SliderPeer.java
+--- /dev/null	Thu Jan 01 00:00:00 1970 +0000
++++ b/src/fwt/java/SliderPeer.java	Tue Jan 25 18:41:38 2011 +0600
+@@ -0,0 +1,111 @@
++package fan.fwt;
 +
-+  public long defaultLineHeight(RichText w) {
-+    StyledText styled = (StyledText)control;
-+    return styled.getLineHeight();
-+  }
++import fan.sys.*;
++import fan.gfx.Orientation;
++import org.eclipse.swt.*;
++import org.eclipse.swt.widgets.*;
++import org.eclipse.swt.widgets.Slider;;
++import org.eclipse.swt.widgets.Widget;;
++import org.eclipse.swt.events.*;
 +
-+  public boolean caretVisible(RichText w) { return ((StyledText)control).getCaret().isVisible(); }
-+  public void caretVisible(RichText w, boolean v) {
-+    StyledText styled = (StyledText)control;
-+    if (styled == null)
-+	return;
-+    Caret caret = styled.getCaret();
-+    caret.setVisible(v);
-+  }
-+
-   Prop.IntProp caretOffset() { return caretOffset; }
-   public final Prop.IntProp caretOffset = new Prop.IntProp(this, 0)
-   {
-@@ -130,7 +149,7 @@
-           try
-           {
-             ((StyledText)w).setCaretOffset(v);
--            checkCaretPos();
-+	    checkCaretPos();
-           }
-           catch (SWTException e) {}
-         }
-Index: source/js/WidgetPeer.js
-===================================================================
-RCS file: /cvsroot/fantom/runtime/org.fantom.fwt/source/js/WidgetPeer.js,v
-retrieving revision 1.2.2.1
-diff -u -r1.2.2.1 WidgetPeer.js
---- source/js/WidgetPeer.js	27 Oct 2010 06:14:05 -0000	1.2.2.1
-+++ source/js/WidgetPeer.js	27 Oct 2010 06:27:07 -0000
-@@ -221,6 +221,30 @@
-   }
- }
- 
-+fan.fwt.WidgetPeer.toKey = function(event)
++public class SliderPeer
++  extends WidgetPeer
++  implements SelectionListener
 +{
-+  var key = fan.fwt.WidgetPeer.keyCodeToKey(event.keyCode);
-+  if (event.shiftKey)   key = key.plus(fan.fwt.Key.m_shift);
-+  if (event.altKey)     key = key.plus(fan.fwt.Key.m_alt);
-+  if (event.ctrlKey)    key = key.plus(fan.fwt.Key.m_ctrl);
-+  // TODO FIXIT
-+  //if (event.commandKey) key = key.plus(Key.command);
-+  return key;
-+}
 +
-+fan.fwt.WidgetPeer.keyCodeToKey = function(keyCode)
-+{
-+  // TODO FIXIT: map rest of non-alpha keys
-+  switch (keyCode)
++//////////////////////////////////////////////////////////////////////////
++// Construction
++//////////////////////////////////////////////////////////////////////////
++
++  public static SliderPeer make(fan.fwt.Slider self)
++    throws Exception
 +  {
-+    case 38: return fan.fwt.Key.m_up;
-+    case 40: return fan.fwt.Key.m_down;
-+    case 37: return fan.fwt.Key.m_left;
-+    case 39: return fan.fwt.Key.m_right;
-+    default: return fan.fwt.Key.fromMask(keyCode);
++    SliderPeer peer = new SliderPeer();
++    ((fan.fwt.Widget)self).peer = peer;
++    peer.self = self;
++    return peer;
 +  }
-+}
 +
- fan.fwt.WidgetPeer.prototype.checkKeyListeners = function(self) {}
++  public Widget create(Widget parent)
++  {
++    fan.fwt.Slider self = (fan.fwt.Slider)this.self;
++	int style = self.orientation == Orientation.horizontal ? SWT.HORIZONTAL : SWT.VERTICAL;
++    Slider c = new Slider((Composite)parent, style);
++    c.addSelectionListener(this);
++    this.control = c;
++    return c;
++  }
++
++//////////////////////////////////////////////////////////////////////////
++// Fields
++//////////////////////////////////////////////////////////////////////////
++
++  // Int val := 0
++  public long val(fan.fwt.Slider self) { return val.get(); }
++  public void val(fan.fwt.Slider self, long v) { val.set(v); }
++  public final Prop.IntProp val = new Prop.IntProp(this, 0)
++  {
++    public int get(Widget w) { return ((Slider)w).getSelection(); }
++    public void set(Widget w, int v) { ((Slider)w).setSelection(v); }
++  };
++
++  // Int min := 0
++  public long min(fan.fwt.Slider self) { return min.get(); }
++  public void min(fan.fwt.Slider self, long v) { min.set(v); }
++  public final Prop.IntProp min = new Prop.IntProp(this, 0)
++  {
++    public int get(Widget w) { return ((Slider)w).getMinimum(); }
++    public void set(Widget w, int v) { ((Slider)w).setMinimum(v); }
++  };
++
++  // Int max := 100
++  public long max(fan.fwt.Slider self) { return max.get(); }
++  public void max(fan.fwt.Slider self, long v) { max.set(v); }
++  public final Prop.IntProp max = new Prop.IntProp(this, 100)
++  {
++    public int get(Widget w) { return ((Slider)w).getMaximum(); }
++    public void set(Widget w, int v) { ((Slider)w).setMaximum(v); }
++  };
++
++  // Int thumb := 10
++  public long thumb(fan.fwt.Slider self) { return thumb.get(); }
++  public void thumb(fan.fwt.Slider self, long v) { thumb.set(v); }
++  public final Prop.IntProp thumb = new Prop.IntProp(this, 10)
++  {
++    public int get(Widget w) { return ((Slider)w).getThumb(); }
++    public void set(Widget w, int v) { ((Slider)w).setThumb(v); }
++  };
++
++  // Int page := 10
++  public long page(fan.fwt.Slider self) { return page.get(); }
++  public void page(fan.fwt.Slider self, long v) { page.set(v); }
++  public final Prop.IntProp page = new Prop.IntProp(this, 10)
++  {
++    public int get(Widget w) { return ((Slider)w).getPageIncrement(); }
++    public void set(Widget w, int v) { ((Slider)w).setPageIncrement(v); }
++  };
++
++//////////////////////////////////////////////////////////////////////////
++// Eventing
++//////////////////////////////////////////////////////////////////////////
++
++  public void widgetDefaultSelected(SelectionEvent se) {}
++
++  public void widgetSelected(SelectionEvent se)
++  {
++    fireModified();
++  }
++
++  public void fireModified()
++  {
++    Slider sb = (Slider)control;
++    fan.fwt.Event fe = event(EventId.modified);
++    fe.data = Long.valueOf(sb.getSelection());
++    ((fan.fwt.Slider)self).onModify().fire(fe);
++  }
++
++  public void checkModifyListeners(fan.fwt.Slider self)
++  {
++  }
++
++}
+\ No newline at end of file
+diff -r b5aed36081cf src/fwt/js/SliderPeer.js
+--- /dev/null	Thu Jan 01 00:00:00 1970 +0000
++++ b/src/fwt/js/SliderPeer.js	Tue Jan 25 18:41:38 2011 +0600
+@@ -0,0 +1,5 @@
++/**
++ * SliderPeer.
++ */
++fan.fwt.SliderPeer = fan.sys.Obj.$extend(fan.fwt.WidgetPeer);
++fan.fwt.SliderPeer.prototype.$ctor = function(self) {}
+diff -r b5aed36081cf src/gfx/fan/GfxEnv.fan
+--- a/src/gfx/fan/GfxEnv.fan	Wed Nov 17 19:21:45 2010 +0600
++++ b/src/gfx/fan/GfxEnv.fan	Tue Jan 25 18:41:38 2011 +0600
+@@ -85,5 +85,16 @@
+   **
+   abstract Int fontWidth(Font f, Str s)
  
- fan.fwt.WidgetPeer.prototype.create = function(parentElem, self)
++  abstract Graphics getImageGraphics(Image image)
++
++  abstract Image createImage(Size size)
++
++  abstract Str? getFromClipboard()
++
++  abstract Str? getFromSelectionClipboard()
++
++  abstract Void copyToClipboard(Str text)
++
++  abstract Void copyToSelectionClipboard(Str text)
+ 
+ }
+\ No newline at end of file
