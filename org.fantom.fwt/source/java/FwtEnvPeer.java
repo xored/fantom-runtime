@@ -10,12 +10,17 @@ package fan.fwt;
 import fan.sys.*;
 import fan.gfx.Size;
 import org.eclipse.swt.*;
+import org.eclipse.swt.dnd.Clipboard;
+import org.eclipse.swt.dnd.DND;
+import org.eclipse.swt.dnd.TextTransfer;
+import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.widgets.Display;
 
 public class FwtEnvPeer
 {
@@ -137,14 +142,44 @@ public class FwtEnvPeer
     Fwt fwt = Fwt.get();
     return new FwtGraphics(new GC(fwt.image(image)));
   }
-  
+
   public fan.gfx.Image createImage(FwtEnv self, fan.gfx.Size size) {
-    Fwt fwt = Fwt.get();
-    Image img = new Image(fwt.display, (int)size.w, (int)size.h);
+    Image img = new Image(display(), (int)size.w, (int)size.h);
     Uri uri = Uri.fromStr("mem-" + Uuid.make());
     fan.gfx.Image resultFan = fan.gfx.Image.makeUri(uri);
-    fwt.images.put(uri, img);
+    Fwt.get().images.put(uri, img);
     return resultFan;
+  }
+
+  public String getFromClipboard(FwtEnv self) {
+    return (String) clipboard().getContents(TextTransfer.getInstance());
+  }
+
+  public String getFromSelectionClipboard(FwtEnv self) {
+    return (String) clipboard().getContents(TextTransfer.getInstance(), DND.SELECTION_CLIPBOARD);
+  }
+
+  public void copyToClipboard(FwtEnv self, String text) {
+    Transfer[] transfers = new Transfer[] { TextTransfer.getInstance() };
+    clipboard().setContents(new String[] { text }, transfers);
+  }
+
+  public void copyToSelectionClipboard(FwtEnv self, String text) {
+    Transfer[] transfers = new Transfer[] { TextTransfer.getInstance() };
+    clipboard().setContents(new String[] { text }, transfers, DND.SELECTION_CLIPBOARD);
+  }
+
+  private synchronized Clipboard clipboard() {
+	  if (clipboard == null) {
+		  clipboard = new Clipboard(display());
+	  }
+	  return clipboard;
+  }
+
+  private Clipboard clipboard;
+
+  private static Display display() {
+    return Fwt.get().display;
   }
 
 }

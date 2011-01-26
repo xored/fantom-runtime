@@ -45,9 +45,8 @@ public class Fwt
    */
   public static Fwt main()
   {
-//    if (mainFwt == null) throw new IllegalStateException("Main UI thread not running");
-  //  return mainFwt;
-    return get();
+    if (mainFwt == null) throw new IllegalStateException("Main UI thread not running");
+    return mainFwt;
   }
 
   private static volatile Fwt mainFwt;

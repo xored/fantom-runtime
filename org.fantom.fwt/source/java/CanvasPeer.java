@@ -13,9 +13,10 @@ import org.eclipse.swt.*;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.widgets.*;
 import org.eclipse.swt.widgets.Widget;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Canvas;
+import org.eclipse.swt.widgets.Composite;;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.events.*;
 
@@ -43,17 +44,10 @@ public class CanvasPeer
     return c;
   }
 
-//  private Rect dirtyRect;
-
-//  public Rect dirty(fan.fwt.Canvas self) {
-//    return dirtyRect;
-//  }
-
   public void paintControl(PaintEvent e)
   {
     FwtGraphics g = new FwtGraphics(e.gc);
-  //  dirtyRect = Rect.make(e.x, e.y, e.width, e.height);  
-    ((fan.fwt.Canvas)self).onPaint(g, e.x, e.y, e.width, e.height);
+    ((fan.fwt.Canvas)self).onPaint(g);
   }
 
 }

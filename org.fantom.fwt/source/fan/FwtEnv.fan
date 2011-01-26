@@ -23,8 +23,11 @@ internal const class FwtEnv : GfxEnv
   override native Int fontDescent(Font f)
   override native Int fontLeading(Font f)
   override native Int fontWidth(Font f, Str s)
-  override native Image fontImage(Font f, Str s, Color fg, Color bg)
   override native Graphics getImageGraphics(Image image)
   override native Image createImage(Size size)
+  override native Str? getFromClipboard()
+  override native Str? getFromSelectionClipboard()
+  override native Void copyToClipboard(Str text)
+  override native Void copyToSelectionClipboard(Str text)
 
 }

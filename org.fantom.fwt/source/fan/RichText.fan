@@ -127,12 +127,6 @@ class RichText : TextWidget
   **
   native Int tabSpacing
 
-
-  **
-  ** Show or hide the caret
-  **
-  native Bool caretVisible
-
   **
   ** The zero based line index which is currently at the
   ** top of the scrolling viewport.
@@ -147,18 +141,6 @@ class RichText : TextWidget
     get { return model.text }
     set { model.text = it }
   }
-
-  **
-  ** Returns a rectangle which describes the area of the
-  ** receiver which is capable of displaying data (that is,
-  ** not covered by the "trimmings").
-  **
-  native Size clientSize()
-
-  **
-  ** Returns the default line height.
-  **
-  native Int defaultLineHeight()
 
 //////////////////////////////////////////////////////////////////////////
 // Utils

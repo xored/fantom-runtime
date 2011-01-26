@@ -22,9 +22,7 @@ class Canvas : Widget
   ** with the clip bounds set to the widget's size.
   **
   **
-  virtual Void onPaint(Graphics g, Int x, Int y, Int w, Int h) {}
-
-//  public native Rect? dirty()
+  virtual Void onPaint(Graphics g) {}
 
   // to force native peer
   private native Void dummyCanvas()

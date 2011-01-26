@@ -85,10 +85,16 @@ abstract const class GfxEnv
   **
   abstract Int fontWidth(Font f, Str s)
 
-  abstract Image fontImage(Font f, Str s, Color fg, Color bg)
-  
   abstract Graphics getImageGraphics(Image image)
-  
+
   abstract Image createImage(Size size)
-  
+
+  abstract Str? getFromClipboard()
+
+  abstract Str? getFromSelectionClipboard()
+
+  abstract Void copyToClipboard(Str text)
+
+  abstract Void copyToSelectionClipboard(Str text)
+
 }

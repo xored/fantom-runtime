@@ -47,8 +47,8 @@ fan.fwt.WidgetPeer.prototype.posOnDisplay = function(self)
   while (p != null)
   {
     if (p instanceof fan.fwt.Tab) p = p.parent();
-    x += p.peer.m_pos.m_x;
-    y += p.peer.m_pos.m_y;
+    x += p.peer.m_pos.m_x - p.peer.elem.scrollLeft;
+    y += p.peer.m_pos.m_y - p.peer.elem.scrollTop;
     if (p instanceof fan.fwt.Dialog)
     {
       var dlg = p.peer.elem.parentNode;
@@ -203,30 +203,6 @@ fan.fwt.WidgetPeer.toKey = function(event)
   if (event.shiftKey)   key = key==null ? fan.fwt.Key.m_shift : key.plus(fan.fwt.Key.m_shift);
   if (event.altKey)     key = key==null ? fan.fwt.Key.m_alt   : key.plus(fan.fwt.Key.m_alt);
   if (event.ctrlKey)    key = key==null ? fan.fwt.Key.m_ctrl  : key.plus(fan.fwt.Key.m_ctrl);
-  // TODO FIXIT
-  //if (event.commandKey) key = key.plus(Key.command);
-  return key;
-}
-
-fan.fwt.WidgetPeer.keyCodeToKey = function(keyCode)
-{
-  // TODO FIXIT: map rest of non-alpha keys
-  switch (keyCode)
-  {
-    case 38: return fan.fwt.Key.m_up;
-    case 40: return fan.fwt.Key.m_down;
-    case 37: return fan.fwt.Key.m_left;
-    case 39: return fan.fwt.Key.m_right;
-    default: return fan.fwt.Key.fromMask(keyCode);
-  }
-}
-
-fan.fwt.WidgetPeer.toKey = function(event)
-{
-  var key = fan.fwt.WidgetPeer.keyCodeToKey(event.keyCode);
-  if (event.shiftKey)   key = key.plus(fan.fwt.Key.m_shift);
-  if (event.altKey)     key = key.plus(fan.fwt.Key.m_alt);
-  if (event.ctrlKey)    key = key.plus(fan.fwt.Key.m_ctrl);
   // TODO FIXIT
   //if (event.commandKey) key = key.plus(Key.command);
   return key;

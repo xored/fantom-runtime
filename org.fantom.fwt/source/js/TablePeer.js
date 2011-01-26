@@ -66,8 +66,10 @@ fan.fwt.TablePeer.injectCss = function()
     " width: 100%;" +
     " border-right: none;" +
     "}" +
-    "table.__fwt_table td img { float:left; border:0; }" +
-    "table.__fwt_table td span { margin-left: 3px; }" +
+    "table.__fwt_table td img { float:left; border:0; width:16px; }" +
+    "table.__fwt_table td img.right { float:right }" + 
+    "table.__fwt_table td img + span { margin-left:3px; }" +
+    "table.__fwt_table td img.right + span { margin-left:0; margin-right:6px; }" +
     "table.__fwt_table tr:nth-child(even) { background:#f1f5fa; }" +
     // selected
     "table.__fwt_table tr.selected { background:#3d80df; }" +
@@ -178,6 +180,9 @@ fan.fwt.TablePeer.prototype.rebuild = function(self)
     this.support   = new fan.fwt.TableSupport(self);
   }
 
+  // used for firefox workaround
+  var isFirefox = navigator.userAgent.indexOf("Firefox/") != -1;
+
   // build new content
   var $this = this;
   var tbody = document.createElement("tbody");
@@ -264,23 +269,37 @@ fan.fwt.TablePeer.prototype.rebuild = function(self)
         }
 
         // cell image
+        var imgElem = null;
         var img = view.image(c,r);
         if (img != null)
         {
-          var imgElem = document.createElement("img");
-          imgElem.src = fan.fwt.WidgetPeer.uriToImageSrc(img.m_uri);
-          node.appendChild(imgElem);
+          imgElem = document.createElement("img");
+          imgElem.src = fan.fwt.WidgetPeer.uriToImageSrc(img.m_uri);          
+          
+          // image align
+          var halignImg = fan.gfx.Halign.m_left;
+          if (model.$halignImage) halignImg = model.$halignImage(view.m_cols.get(c));
+          if (halignImg === fan.gfx.Halign.m_right) imgElem.className = "right";
         }
 
         // cell text
         var text = view.text(c,r);
-        if (img != null && text.length > 0)
+        if (imgElem == null) node.appendChild(document.createTextNode(text));
+        else
         {
-          var span = document.createElement("span");
-          span.appendChild(document.createTextNode(text));
-          node.appendChild(span);
+          node.appendChild(imgElem);
+          if (text.length > 0)
+          {
+            var span = document.createElement("span");
+            
+            // workaround for Firefox float "bug"
+            if (isFirefox && imgElem.className == "right") 
+              span.style.marginRight = "22px"; 
+
+            span.appendChild(document.createTextNode(text));
+            node.appendChild(span);
+          }
         }
-        else node.appendChild(document.createTextNode(text));
 
         // style overrides
         var fg = view.fg(c,r); if (fg != null) td.style.color = fg.toCss();
@@ -344,15 +363,30 @@ fan.fwt.TablePeer.prototype.$onMouseDown = function(self, event)
     var view  = self.view();
     if (!model.$onMouseDown) return;
 
-    // find pos relative to widget
+    // find pos on display
     var dis = this.posOnDisplay(self);
-    var rel = fan.gfx.Point.make(event.clientX-dis.m_x, event.clientY-dis.m_y);
+    var posOnDis = fan.gfx.Point.make(event.clientX-dis.m_x, event.clientY-dis.m_y);
+    
+    // find pos relative to cell
+    var div   = this.elem;
+    var table = div.firstChild;
+    var tr  = table.rows[row+1];
+    var td  = tr.cells[col+1];
+    var rx  = posOnDis.m_x - td.offsetLeft + div.scrollLeft;
+    var ry  = posOnDis.m_y - tr.offsetTop  + div.scrollTop;
+    var rel = fan.gfx.Point.make(rx, ry);
+
+    // data map
+    var data = fan.sys.Map.make(fan.sys.Str.$type, fan.sys.Obj.$type);
+    data.set("posOnDisplay", posOnDis);
+    data.set("cellSize",     fan.gfx.Size.make(td.offsetWidth, td.offsetHeight));
 
     // fire event
     var evt = fan.fwt.Event.make();
     evt.m_id = fan.fwt.EventId.m_mouseDown;
     evt.m_pos = rel;
     evt.m_widget = self;
+    evt.m_data = data;
     model.$onMouseDown(evt, view.m_cols.get(col), view.m_rows.get(row));
   }
 }
