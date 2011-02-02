@@ -114,6 +114,7 @@ fan.fwt.SliderPeer.prototype.doHoriz = function(self)
   scrollDiv.style.width = w + "px";
   scrollDiv.style.height = fan.fwt.SliderPeer.nativeSliderWidth() + "px";
   scrollDiv.style.overflowX = "scroll";
+  scrollDiv.style.overflowY = "hidden";
   
   var scrollContent = scrollDiv.firstChild;
   scrollContent.style.height = "1px"
@@ -128,6 +129,7 @@ fan.fwt.SliderPeer.prototype.doVert = function(self)
   var scrollDiv = this.elem.firstChild;
   scrollDiv.style.width = fan.fwt.SliderPeer.nativeSliderWidth() + "px";
   scrollDiv.style.height = h + "px";
+  scrollDiv.style.overflowX = "hidden";
   scrollDiv.style.overflowY = "scroll";
   
   var scrollContent = scrollDiv.firstChild;
