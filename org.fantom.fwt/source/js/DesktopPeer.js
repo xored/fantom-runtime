@@ -28,8 +28,11 @@ fan.fwt.DesktopPeer.$isMac = navigator.userAgent.indexOf("Mac OS X") != -1;
 //////////////////////////////////////////////////////////////////////////
 
 //fan.fwt.DesktopPeer.disposeColor(Color c)
+fan.fwt.DesktopPeer.disposeColor = function(c) {}
 //fan.fwt.DesktopPeer.disposeFont(Font f)
+fan.fwt.DesktopPeer.disposeFont = function(f) {}
 //fan.fwt.DesktopPeer.disposeImage(Image i)
+fan.fwt.DesktopPeer.disposeImage = function(i) {}
 
 //////////////////////////////////////////////////////////////////////////
 // System Fonts
