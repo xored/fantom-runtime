@@ -80,6 +80,19 @@ fan.fwt.FwtEnvPeer.loadImage = function(fanImg, widget)
   return imgWithCanvas.img;
 }
 
+fan.fwt.FwtEnvPeer.disposeImage = function(fanImg) {
+  var uri = fanImg.m_uri;
+  var key = uri.toStr();
+  var imgWithCanvas = fan.fwt.FwtEnvPeer.imgCache[key];
+  // make sure that we free all revs to allow GC remove elements
+  if (imgWithCanvas) {
+    imgWithCanvas.img = null;
+    imgWithCanvas.canvas = null;
+    imgWithCanvas = null;
+  }
+  fan.fwt.FwtEnvPeer.imgCache[key] = null;
+}
+
 // Relayout handling for async image loading
 fan.fwt.FwtEnvPeer.$win = null;
 fan.fwt.FwtEnvPeer.$needRelayout = false;
