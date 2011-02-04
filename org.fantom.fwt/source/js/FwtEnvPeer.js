@@ -71,26 +71,23 @@ fan.fwt.FwtEnvPeer.loadImage = function(fanImg, widget)
     };
     fan.fwt.FwtEnvPeer.imgCache[key] = imgWithCanvas;
   }
-  else if (imgWithCanvas.canvas)
-  {
-    var dataUrl = imgWithCanvas.canvas.toDataURL("image/png");
-    imgWithCanvas.img.src = dataUrl;
-  }
   
   return imgWithCanvas.img;
 }
 
-fan.fwt.FwtEnvPeer.disposeImage = function(fanImg) {
+fan.fwt.FwtEnvPeer.disposeImage = function(fanImg)
+{
   var uri = fanImg.m_uri;
   var key = uri.toStr();
-  var imgWithCanvas = fan.fwt.FwtEnvPeer.imgCache[key];
   // make sure that we free all revs to allow GC remove elements
-  if (imgWithCanvas) {
-    imgWithCanvas.img = null;
-    imgWithCanvas.canvas = null;
-    imgWithCanvas = null;
-  }
   fan.fwt.FwtEnvPeer.imgCache[key] = null;
+}
+
+fan.fwt.FwtEnvPeer.reloadImageFromCanvas = function(imgUri)
+{
+  var imgWithCanvas = fan.fwt.FwtEnvPeer.imgCache[imgUri];
+  var dataUrl = imgWithCanvas.canvas.toDataURL("image/png");
+  imgWithCanvas.img.src = dataUrl;
 }
 
 // Relayout handling for async image loading
@@ -232,6 +229,7 @@ fan.fwt.FwtEnvPeer.prototype.getImageGraphics = function(self, fanImg) {
   var g = new fan.fwt.Graphics();
   g.size = fan.gfx.Size.make(imgWithCanvas.canvas.width, imgWithCanvas.canvas.height);
   g.cx = imgWithCanvas.canvas.getContext("2d");
+  g.imgUri = key;
   // ideal approach to set textBaseLine to "top" by <code>g.cx.textBaseLine = "top";</code>, but "top" is not supported by
   // the major part of browsers. So we use default base line ("alphabetic") and add ascent of font to y during drawing text.
   g.cx.textBaseLine = "alphabetic";

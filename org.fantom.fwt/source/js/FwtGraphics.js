@@ -16,6 +16,8 @@ fan.fwt.Graphics.prototype.$ctor = function() {}
 
 fan.fwt.Graphics.prototype.size = null;
 fan.fwt.Graphics.prototype.cx = null;
+// image URI if this Graphics based on some image 
+fan.fwt.Graphics.prototype.imgUri = null;
 
 // Brush brush
 fan.fwt.Graphics.prototype.m_brush = null
@@ -302,7 +304,9 @@ fan.fwt.Graphics.prototype.pop = function ()
 // Void dispose()
 fan.fwt.Graphics.prototype.dispose = function ()
 {
-  // no-op
+  // temp ugly approach
+  if (this.imgUri)
+    fan.fwt.FwtEnvPeer.reloadImageFromCanvas(this.imgUri);
 }
 
 // state for fields in push/pop
