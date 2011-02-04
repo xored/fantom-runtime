@@ -8,7 +8,7 @@
 package fan.fwt;
 
 import fan.sys.*;
-import fan.gfx.Size;
+import fan.gfx.*;
 import org.eclipse.swt.*;
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.DND;
@@ -137,10 +137,11 @@ public class FwtEnvPeer
     return resultFan;
   }
 
-
   public fan.gfx.Graphics getImageGraphics(FwtEnv self, fan.gfx.Image image) {
-    Fwt fwt = Fwt.get();
-    return new FwtGraphics(new GC(fwt.image(image)));
+    Event e = new Event();
+    org.eclipse.swt.graphics.Image i = Fwt.get().image(image);
+    Rectangle rect = i.getBounds();
+    return new FwtGraphics(new GC(i), rect.x, rect.y, rect.width, rect.height);
   }
 
   public fan.gfx.Image createImage(FwtEnv self, fan.gfx.Size size) {

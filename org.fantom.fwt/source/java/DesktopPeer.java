@@ -63,10 +63,10 @@ public class DesktopPeer
 
   public static void callAsync(Func func)
   {
-	  callAsync(func, Duration.defVal);
+    callLater(Duration.defVal, func);
   }
 
-  public static void callAsync(Func func, Duration delay)
+  public static void callLater(Duration delay, Func func)
   {
     // check if running on UI thread
     Fwt fwt = Fwt.main();
@@ -75,7 +75,7 @@ public class DesktopPeer
 
     // enqueue on main UI thread's display
     final Func finalFunc = func;
-    Runnable runnable = new Runnable()
+    final Runnable runnable = new Runnable()
     {
       public void run()
       {
@@ -89,13 +89,11 @@ public class DesktopPeer
         }
       }
     };
+
     if (delay.ticks > 0)
-    {
-       fwt.display.timerExec((int)delay.millis(), runnable);
-    } else
-    {
+      fwt.display.timerExec((int)delay.millis(), runnable);
+    else
       fwt.display.asyncExec(runnable);
-    }
   }
 
 //////////////////////////////////////////////////////////////////////////

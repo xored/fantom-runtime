@@ -20,9 +20,10 @@ import org.eclipse.swt.widgets.Display;
 
 public class FwtGraphics implements Graphics
 {
-  public FwtGraphics(GC gc)
+  public FwtGraphics(GC gc, int x, int y, int w, int h)
   {
     this.gc = gc;
+    clip(Rect.make(x, y, w, h));
   }
 
   public Brush brush()
@@ -293,6 +294,11 @@ public class FwtGraphics implements Graphics
     Rectangle b = WidgetPeer.rect(r);
     gc.setClipping(a.intersection(b));
     return this;
+  }
+
+  public Rect clipBounds()
+  {
+   return WidgetPeer.rect(gc.getClipping());
   }
 
   public void dispose()

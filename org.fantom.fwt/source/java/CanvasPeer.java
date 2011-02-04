@@ -13,10 +13,9 @@ import org.eclipse.swt.*;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.widgets.*;
 import org.eclipse.swt.widgets.Widget;
-import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Canvas;
-import org.eclipse.swt.widgets.Composite;;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.events.*;
 
@@ -36,17 +35,14 @@ public class CanvasPeer
 
   public Widget create(Widget parent)
   {
-    Canvas c = new Canvas((Composite)parent, SWT.NO_BACKGROUND)
-    {
-      public void drawBackground(GC gc, int x, int y, int w, int h) {}
-    };
+    Canvas c = new Canvas((Composite)parent, SWT.NO_BACKGROUND);
     c.addPaintListener(this);
     return c;
   }
 
   public void paintControl(PaintEvent e)
   {
-    FwtGraphics g = new FwtGraphics(e.gc);
+    FwtGraphics g = new FwtGraphics(e.gc, e.x, e.y, e.width, e.height);
     ((fan.fwt.Canvas)self).onPaint(g);
   }
 
