@@ -263,8 +263,7 @@ fan.fwt.Graphics.prototype.drawText = function (s, x, y)
 {
   // ideal approach to set textBaseLine to "top" by <code>this.cx.textBaseLine = "top";</code>, but "top" is not supported by
   // the major part of browsers. So we use default base line ("alphabetic") and add ascent of font to y. 
-  this.cx.textBaseLine = "alphabetic";
-  this.cx.fillText(s, x, y + this.m_font.ascent());
+  this.cx.fillText(s, x, y);
   return this;
 }
 

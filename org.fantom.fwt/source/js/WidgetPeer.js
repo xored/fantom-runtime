@@ -165,32 +165,33 @@ fan.fwt.WidgetPeer.prototype.attachTo = function(self, elem)
 fan.fwt.WidgetPeer.prototype.attachEvents = function(self, evtId, elem, event, list)
 {
   var peer = this;
-  for (var i=0; i<list.size(); i++)
+  var func = function(e)
   {
-    var meth = list.get(i);
-    var func = function(e)
+    // find pos relative to widget
+    var dis = peer.posOnDisplay(self);
+    var rel = fan.gfx.Point.make(e.clientX-dis.m_x, e.clientY-dis.m_y);
+
+    // TODO - need to fix for IE
+    // TODO - only valid for mouseDown - so need to clean up this code
+    var evt = fan.fwt.Event.make();
+    evt.m_id = evtId;
+    evt.m_pos = rel;
+    evt.m_widget = self;
+    evt.m_count = 1;
+    evt.m_button = 1;
+    evt.m_key = fan.fwt.WidgetPeer.toKey(e);
+    for (var i=0; i<list.size(); i++)
     {
-      // find pos relative to widget
-      var dis = peer.posOnDisplay(self);
-      var rel = fan.gfx.Point.make(e.clientX-dis.m_x, e.clientY-dis.m_y);
-
-      // TODO - need to fix for IE
-      // TODO - only valid for mouseDown - so need to clean up this code
-      var evt = fan.fwt.Event.make();
-      evt.m_id = evtId;
-      evt.m_pos = rel;
-      evt.m_widget = self;
-      //evt.count =
-      evt.m_key = fan.fwt.WidgetPeer.toKey(e);
+      var meth = list.get(i);
       meth.call(evt);
-      return false;
     }
-
-    if (elem.addEventListener)
-      elem.addEventListener(event, func, false);
-    else
-      elem.attachEvent("on"+event, func);
+    return false;
   }
+
+  if (elem.addEventListener)
+    elem.addEventListener(event, func, false);
+  else
+    elem.attachEvent("on"+event, func);
 }
 
 fan.fwt.WidgetPeer.toKey = function(event)
