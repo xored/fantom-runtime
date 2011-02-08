@@ -119,6 +119,7 @@ fan.fwt.SliderPeer.prototype.doHoriz = function(self)
   var scrollContent = scrollDiv.firstChild;
   scrollContent.style.height = "1px"
   scrollContent.style.width = Math.floor(w * (this.m_max - this.m_min) / this.m_thumb) + "px";
+  scrollDiv.scrollLeft = Math.floor(h * (this.m_val - this.m_min) / this.m_thumb);
 }
 
 fan.fwt.SliderPeer.prototype.doVert = function(self)
@@ -135,6 +136,7 @@ fan.fwt.SliderPeer.prototype.doVert = function(self)
   var scrollContent = scrollDiv.firstChild;
   scrollContent.style.width = "1px"
   scrollContent.style.height = Math.floor(h * (this.m_max - this.m_min) / this.m_thumb) + "px";
+  scrollDiv.scrollTop = Math.floor(h * (this.m_val - this.m_min) / this.m_thumb);
 }
 
 fan.fwt.SliderPeer.prototype.checkModifyListeners = function(self) {}
