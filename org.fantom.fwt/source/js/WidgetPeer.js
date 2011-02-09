@@ -151,7 +151,7 @@ fan.fwt.WidgetPeer.prototype.attachTo = function(self, elem)
   this.attachEvents(self, fan.fwt.EventId.m_mouseMove,  elem, "mousemove",  self.m_onMouseMove.list());
   this.attachEvents(self, fan.fwt.EventId.m_mouseUp,    elem, "mouseup",    self.m_onMouseUp.list());
   //this.attachEvents(self, fan.fwt.EventId.m_mouseHover, elem, "mousehover", self.m_onMouseHover.list());
-  //this.attachEvents(self, fan.fwt.EventId.m_mouseWheel, elem, "mousewheel", self.m_onMouseWheel.list());
+  this.attachWheelEvent(self, elem, self.m_onMouseWheel.list());
 
   // recursively attach my children
   var kids = self.m_kids;
@@ -160,6 +160,52 @@ fan.fwt.WidgetPeer.prototype.attachTo = function(self, elem)
     var kid = kids.get(i);
     kid.peer.attach(kid);
   }
+}
+
+fan.fwt.WidgetPeer.prototype.attachWheelEvent = function(self, elem, list)
+{
+  if (list.size() == 0) return;
+  var peer = this;
+  var func = function(e)
+  {
+    var delta = 0;
+    if (!e) e = window.event; // IE
+    if (e.wheelDelta) { 
+      // IE, Opera, safari, chrome
+      delta = e.wheelDelta / 120;
+    } else if (e.detail) { 
+      // Mozilla
+      delta = -e.detail / 3;
+    }
+    if (delta) {
+      // find pos relative to widget
+      var dis = peer.posOnDisplay(self);
+      var rel = fan.gfx.Point.make(e.clientX-dis.m_x, e.clientY-dis.m_y);
+
+      // TODO - need to fix for IE
+      // TODO - only valid for mouseDown - so need to clean up this code
+      var evt = fan.fwt.Event.make();
+      evt.m_id = fan.fwt.EventId.m_mouseWheel;
+      evt.m_pos = rel;
+      evt.m_widget = self;
+      evt.m_count = delta;
+      evt.m_button = 1;
+      evt.m_key = fan.fwt.WidgetPeer.toKey(e);
+      for (var i=0; i<list.size(); i++)
+      {
+        var meth = list.get(i);
+        meth.call(evt);
+      }
+      if (e.preventDefault) e.preventDefault();
+      e.returnValue = false; //  IE
+      return false;
+    }
+  }
+
+  if (window.addEventListener) // mozilla, safari, chrome
+    window.addEventListener('DOMMouseScroll', func, false);
+  // IE, Opera.
+  window.onmousewheel = document.onmousewheel = func;
 }
 
 fan.fwt.WidgetPeer.prototype.attachEvents = function(self, evtId, elem, event, list)
