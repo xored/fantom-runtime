@@ -28,10 +28,10 @@ fan.fwt.FwtEnvPeer.loadImage = function(fanImg, widget)
 {
   var uri = fanImg.m_uri;
   var key = uri.toStr();
-  var imgWithCanvas = fan.fwt.FwtEnvPeer.imgCache[key];
-  if (!imgWithCanvas)
+  var jsImg = fan.fwt.FwtEnvPeer.imgCache[key]
+  if (!jsImg)
   {
-    var jsImg = document.createElement("img");
+    jsImg = document.createElement("img");
     if (widget != null)
     {
       var onload = function()
@@ -66,28 +66,9 @@ fan.fwt.FwtEnvPeer.loadImage = function(fanImg, widget)
       //  jsImg.attachEvent('onload', onload);
     }
     jsImg.src = fan.fwt.WidgetPeer.uriToImageSrc(uri);
-    imgWithCanvas = {
-        img : jsImg
-    };
-    fan.fwt.FwtEnvPeer.imgCache[key] = imgWithCanvas;
+    fan.fwt.FwtEnvPeer.imgCache[key] = jsImg;
   }
-  
-  return imgWithCanvas.img;
-}
-
-fan.fwt.FwtEnvPeer.disposeImage = function(fanImg)
-{
-  var uri = fanImg.m_uri;
-  var key = uri.toStr();
-  // make sure that we free all revs to allow GC remove elements
-  fan.fwt.FwtEnvPeer.imgCache[key] = null;
-}
-
-fan.fwt.FwtEnvPeer.reloadImageFromCanvas = function(imgUri)
-{
-  var imgWithCanvas = fan.fwt.FwtEnvPeer.imgCache[imgUri];
-  var dataUrl = imgWithCanvas.canvas.toDataURL("image/png");
-  imgWithCanvas.img.src = dataUrl;
+  return jsImg
 }
 
 // Relayout handling for async image loading
@@ -132,9 +113,34 @@ fan.fwt.FwtEnvPeer.prototype.imageResize = function(self, fanImg, size)
   jsNew.src = dataUrl;
 
   // put new image into the image with our auto-gen uri key
-  fan.fwt.FwtEnvPeer.imgCache[uri] = {
-      img : jsNew
-  };
+  fan.fwt.FwtEnvPeer.imgCache[uri] = jsNew;
+
+  // create new Fan wrapper which references jsNew via uri
+  return fan.gfx.Image.makeUri(uri);
+}
+
+// Image imagePaint(Size size, |Graphics| f)
+fan.fwt.FwtEnvPeer.prototype.imagePaint = function(self, size, f)
+{
+  // generate a unique uri as the key for the new image
+  var uri = fan.fwt.FwtEnvPeer.nextMemUriStr();
+
+  // create temp canvas
+  var canvas = document.createElement("canvas");
+  canvas.width = size.m_w;
+  canvas.height = size.m_h;
+
+  // paint image content on the canvas
+  var g = new fan.fwt.Graphics();
+  g.paint(canvas, fan.gfx.Rect.make(0, 0, size.m_w, size.m_h), function() { f.call(g) })
+
+  // create new image based on canvas content
+  var dataUrl = canvas.toDataURL("image/png");
+  var jsNew = document.createElement("img");
+  jsNew.src = dataUrl;
+
+  // put new image into the image with our auto-gen uri key
+  fan.fwt.FwtEnvPeer.imgCache[uri] = jsNew;
 
   // create new Fan wrapper which references jsNew via uri
   return fan.gfx.Image.makeUri(uri);
@@ -188,51 +194,5 @@ fan.fwt.FwtEnvPeer.prototype.fontWidth = function(self, font, str)
     // fallback if canvas not supported
     return str.length * 7;
   }
-}
-
-// fan.gfx.Image createImage(fan.fwt.Size size)
-fan.fwt.FwtEnvPeer.prototype.createImage = function(self, size) {
-  // generate a unique uri as the key for the new image
-  var uri = fan.fwt.FwtEnvPeer.nextMemUriStr();
-  
-  var jsNew = document.createElement("img");
-  jsNew.width = size.m_w;
-  jsNew.height = size.m_h;
-  
-  // put new image into the image with our auto-gen uri key
-  fan.fwt.FwtEnvPeer.imgCache[uri] = {
-      img : jsNew
-  };
-
-  // create new Fan wrapper which references jsNew via uri
-  return fan.gfx.Image.makeUri(uri);
-}
-
-// fan.gfx.Graphics getImageGraphics(fan.gfx.Image image)
-fan.fwt.FwtEnvPeer.prototype.getImageGraphics = function(self, fanImg) {
-  // create image if needed
-  var key = fanImg.m_uri.toStr();
-  var imgWithCanvas = fan.fwt.FwtEnvPeer.imgCache[key];
-  if (!imgWithCanvas)
-    fan.fwt.FwtEnvPeer.loadImage(fanImg);
-  imgWithCanvas = fan.fwt.FwtEnvPeer.imgCache[key];
-  
-  // create canvas
-  if (!imgWithCanvas.canvas)
-  {
-    var c = document.createElement("canvas");
-    c.width = imgWithCanvas.img.width;
-    c.height = imgWithCanvas.img.height;
-    imgWithCanvas.canvas = c;
-  }
-  
-  var g = new fan.fwt.Graphics();
-  g.size = fan.gfx.Size.make(imgWithCanvas.canvas.width, imgWithCanvas.canvas.height);
-  g.cx = imgWithCanvas.canvas.getContext("2d");
-  g.imgUri = key;
-  // ideal approach to set textBaseLine to "top" by <code>g.cx.textBaseLine = "top";</code>, but "top" is not supported by
-  // the major part of browsers. So we use default base line ("alphabetic") and add ascent of font to y during drawing text.
-  g.cx.textBaseLine = "alphabetic";
-  return g;
 }
 

@@ -8,19 +8,14 @@
 package fan.fwt;
 
 import fan.sys.*;
-import fan.gfx.*;
+import fan.gfx.Size;
 import org.eclipse.swt.*;
-import org.eclipse.swt.dnd.Clipboard;
-import org.eclipse.swt.dnd.DND;
-import org.eclipse.swt.dnd.TextTransfer;
-import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.widgets.Display;
 
 public class FwtEnvPeer
 {
@@ -75,11 +70,32 @@ public class FwtEnvPeer
     gc.drawImage(s, 0, 0, sw, sh, 0, 0, rw, rh);
     gc.dispose();
 
-    // return new gfx::Image backed by new SWT image
+    return toFanImage(resultSwt);
+  }
+
+  public fan.gfx.Image imagePaint(FwtEnv self, fan.gfx.Size size, Func f)
+  {
+    int w = (int)size.w;
+    int h = (int)size.h;
+    Fwt fwt = Fwt.get();
+
+    Image img = new Image(fwt.display, w, h);
+    FwtGraphics g = new FwtGraphics(new GC(img), 0, 0, w, h);
+    try {
+      f.call(g);
+      return toFanImage(img);
+    } finally {
+      g.dispose();
+    }
+  }
+
+  // return new gfx::Image backed by new SWT image
+  private fan.gfx.Image toFanImage(Image swtImage)
+  {
     Uri uri = Uri.fromStr("mem-" + Uuid.make());
-    fan.gfx.Image resultFan = fan.gfx.Image.makeUri(uri);
-    fwt.images.put(uri, resultSwt);
-    return resultFan;
+    fan.gfx.Image fanImage = fan.gfx.Image.makeUri(uri);
+    Fwt.get().images.put(uri, swtImage);
+    return fanImage;
   }
 
 //////////////////////////////////////////////////////////////////////////
@@ -117,70 +133,6 @@ public class FwtEnvPeer
     GC gc = fwt.scratchGC();
     gc.setFont(fwt.font(f));
     return gc;
-  }
-
-  public fan.gfx.Image fontImage(FwtEnv self, fan.gfx.Font f, String s, fan.gfx.Color fg, fan.gfx.Color bg)
-  {
-    Fwt fwt = Fwt.get();
-    long width = fontWidth(self, f, s);
-    if (width == 0)
-	width = fontWidth(self, f, "?") * s.length();
-    Image img = new Image(fwt.display, (int)width, (int)fontHeight(self, f));
-    GC gc = new GC(img);
-    gc.setFont(fwt.font(f));
-    gc.setForeground(fwt.color(fg));
-    gc.setBackground(fwt.color(bg));
-    gc.drawText(s, 0, 0, SWT.DRAW_DELIMITER | SWT.DRAW_TAB);// | SWT.DRAW_TRANSPARENT);
-    Uri uri = Uri.fromStr("mem-" + Uuid.make());
-    fan.gfx.Image resultFan = fan.gfx.Image.makeUri(uri);
-    fwt.images.put(uri, img);
-    return resultFan;
-  }
-
-  public fan.gfx.Graphics getImageGraphics(FwtEnv self, fan.gfx.Image image) {
-    Event e = new Event();
-    org.eclipse.swt.graphics.Image i = Fwt.get().image(image);
-    Rectangle rect = i.getBounds();
-    return new FwtGraphics(new GC(i), rect.x, rect.y, rect.width, rect.height);
-  }
-
-  public fan.gfx.Image createImage(FwtEnv self, fan.gfx.Size size) {
-    Image img = new Image(display(), (int)size.w, (int)size.h);
-    Uri uri = Uri.fromStr("mem-" + Uuid.make());
-    fan.gfx.Image resultFan = fan.gfx.Image.makeUri(uri);
-    Fwt.get().images.put(uri, img);
-    return resultFan;
-  }
-
-  public String getFromClipboard(FwtEnv self) {
-    return (String) clipboard().getContents(TextTransfer.getInstance());
-  }
-
-  public String getFromSelectionClipboard(FwtEnv self) {
-    return (String) clipboard().getContents(TextTransfer.getInstance(), DND.SELECTION_CLIPBOARD);
-  }
-
-  public void copyToClipboard(FwtEnv self, String text) {
-    Transfer[] transfers = new Transfer[] { TextTransfer.getInstance() };
-    clipboard().setContents(new String[] { text }, transfers);
-  }
-
-  public void copyToSelectionClipboard(FwtEnv self, String text) {
-    Transfer[] transfers = new Transfer[] { TextTransfer.getInstance() };
-    clipboard().setContents(new String[] { text }, transfers, DND.SELECTION_CLIPBOARD);
-  }
-
-  private synchronized Clipboard clipboard() {
-	  if (clipboard == null) {
-		  clipboard = new Clipboard(display());
-	  }
-	  return clipboard;
-  }
-
-  private Clipboard clipboard;
-
-  private static Display display() {
-    return Fwt.get().display;
   }
 
 }

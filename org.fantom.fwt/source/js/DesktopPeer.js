@@ -37,14 +37,12 @@ fan.fwt.DesktopPeer.callLater = function(delay, f)
 // Dispose
 //////////////////////////////////////////////////////////////////////////
 
-//fan.fwt.DesktopPeer.disposeColor(fan.gfx.Color c)
 fan.fwt.DesktopPeer.disposeColor = function(fanColor) {}
-//fan.fwt.DesktopPeer.disposeFont(fan.gfx.Font f)
 fan.fwt.DesktopPeer.disposeFont = function(fanFont) {}
-//fan.fwt.DesktopPeer.disposeImage(fan.gfx.Image i)
 fan.fwt.DesktopPeer.disposeImage = function(fanImg)
 {
-  fan.fwt.FwtEnvPeer.disposeImage(fanImg);
+  // remove image from cache to allow GC free it
+  fan.fwt.FwtEnvPeer.imgCache[fanImg.m_uri.toStr()] = null
 }
 
 //////////////////////////////////////////////////////////////////////////

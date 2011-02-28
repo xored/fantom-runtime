@@ -17,17 +17,12 @@ internal const class FwtEnv : GfxEnv
 
   override native Size imageSize(Image i)
   override native Image imageResize(Image i, Size s)
+  override native Image imagePaint(Size s, |Graphics| f)
 
   override native Int fontHeight(Font f)
   override native Int fontAscent(Font f)
   override native Int fontDescent(Font f)
   override native Int fontLeading(Font f)
   override native Int fontWidth(Font f, Str s)
-  override native Graphics getImageGraphics(Image image)
-  override native Image createImage(Size size)
-  override native Str? getFromClipboard()
-  override native Str? getFromSelectionClipboard()
-  override native Void copyToClipboard(Str text)
-  override native Void copyToSelectionClipboard(Str text)
 
 }

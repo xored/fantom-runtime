@@ -48,6 +48,8 @@ abstract const class GfxEnv
   **
   abstract Image imageResize(Image img, Size size)
 
+  abstract Image imagePaint(Size size, |Graphics| f)
+
 //////////////////////////////////////////////////////////////////////////
 // Font Support
 //////////////////////////////////////////////////////////////////////////
@@ -84,17 +86,5 @@ abstract const class GfxEnv
   ** with this font for this environment.
   **
   abstract Int fontWidth(Font f, Str s)
-
-  abstract Graphics getImageGraphics(Image image)
-
-  abstract Image createImage(Size size)
-
-  abstract Str? getFromClipboard()
-
-  abstract Str? getFromSelectionClipboard()
-
-  abstract Void copyToClipboard(Str text)
-
-  abstract Void copyToSelectionClipboard(Str text)
 
 }

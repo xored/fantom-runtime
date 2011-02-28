@@ -33,6 +33,11 @@ const class Image
     }
   }
 
+  static Image makePainted(Size size, |Graphics| f)
+  {
+    GfxEnv.cur.imagePaint(size, f)
+  }
+
   **
   ** Create an image to load from file.  If checked is true and the
   ** file doesn't exist then throw an exception.  If checked is false
