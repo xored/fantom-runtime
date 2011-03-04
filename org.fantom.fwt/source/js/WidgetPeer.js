@@ -150,7 +150,10 @@ fan.fwt.WidgetPeer.prototype.attachTo = function(self, elem)
   this.attachEvents(self, fan.fwt.EventId.m_mouseDown,  elem, "mousedown",  self.m_onMouseDown.list());
   this.attachEvents(self, fan.fwt.EventId.m_mouseMove,  elem, "mousemove",  self.m_onMouseMove.list());
   this.attachEvents(self, fan.fwt.EventId.m_mouseUp,    elem, "mouseup",    self.m_onMouseUp.list());
+  this.attachEvents(self, fan.fwt.EventId.m_keyDown,  elem, "keydown",  self.m_onKeyDown.list());
+  this.attachEvents(self, fan.fwt.EventId.m_keyUp,    elem, "keyup",    self.m_onKeyUp.list());
   //this.attachEvents(self, fan.fwt.EventId.m_mouseHover, elem, "mousehover", self.m_onMouseHover.list());
+  this.attachDoubleClickEvent(self, elem);
   this.attachWheelEvent(self, elem, self.m_onMouseWheel.list());
 
   // recursively attach my children
@@ -160,6 +163,50 @@ fan.fwt.WidgetPeer.prototype.attachTo = function(self, elem)
     var kid = kids.get(i);
     kid.peer.attach(kid);
   }
+}
+
+fan.fwt.WidgetPeer.prototype.attachDoubleClickEvent = function(self, elem)
+{
+  var peer = this;
+  var func = function(e)
+  {
+    var dis = peer.posOnDisplay(self);
+    var rel = fan.gfx.Point.make(e.clientX-dis.m_x, e.clientY-dis.m_y);
+
+    var evt = fan.fwt.Event.make();
+    evt.m_pos = rel;
+    evt.m_widget = self;
+    evt.m_count = 2;
+    if (e.currentTarget)  // FF
+        evt.m_button = e.button + 1;    
+    else  // IE
+        evt.m_button = e.button == 2 ? 3 : (e.button==4 ? 2 : 1);
+    evt.m_key = fan.fwt.WidgetPeer.toKey(e);
+
+    evt.m_id = fan.fwt.EventId.m_mouseDown;
+    list = self.m_onMouseDown.list();
+    for (var i=0; i<list.size(); i++)
+    {
+      var meth = list.get(i);
+      meth.call(evt);
+    }
+
+    evt.m_id = fan.fwt.EventId.m_mouseUp;
+    list = self.m_onMouseUp.list();
+    for (var i=0; i<list.size(); i++)
+    {
+      var meth = list.get(i);
+      meth.call(evt);
+    }
+
+    return false;
+  }
+
+  if (elem.addEventListener)
+    elem.addEventListener("dblclick", func, false);
+  else
+    elem.attachEvent("ondblclick", func);
+
 }
 
 fan.fwt.WidgetPeer.prototype.attachWheelEvent = function(self, elem, list)
@@ -217,6 +264,8 @@ fan.fwt.WidgetPeer.prototype.attachEvents = function(self, evtId, elem, event, l
     var dis = peer.posOnDisplay(self);
     var rel = fan.gfx.Point.make(e.clientX-dis.m_x, e.clientY-dis.m_y);
 
+//    var rel = fan.gfx.Point.make(e.clientX, e.clientY);
+
     // TODO - need to fix for IE
     // TODO - only valid for mouseDown - so need to clean up this code
     var evt = fan.fwt.Event.make();
@@ -224,7 +273,11 @@ fan.fwt.WidgetPeer.prototype.attachEvents = function(self, evtId, elem, event, l
     evt.m_pos = rel;
     evt.m_widget = self;
     evt.m_count = 1;
-    evt.m_button = 1;
+    if (e.currentTarget)  // FF
+        evt.m_button = e.button + 1;    
+    else  // IE
+        evt.m_button = e.button == 2 ? 3 : (e.button==4 ? 2 : 1);
+
     evt.m_key = fan.fwt.WidgetPeer.toKey(e);
     for (var i=0; i<list.size(); i++)
     {
