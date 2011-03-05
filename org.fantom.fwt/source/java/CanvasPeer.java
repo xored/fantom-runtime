@@ -42,7 +42,7 @@ public class CanvasPeer
 
   public void paintControl(PaintEvent e)
   {
-    FwtGraphics g = new FwtGraphics(e.gc, e.x, e.y, e.width, e.height);
+    FwtGraphics g = new FwtGraphics(e);
     ((fan.fwt.Canvas)self).onPaint(g);
   }
 

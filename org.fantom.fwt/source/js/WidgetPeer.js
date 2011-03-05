@@ -49,11 +49,14 @@ fan.fwt.WidgetPeer.prototype.posOnDisplay = function(self)
     if (p instanceof fan.fwt.Tab) p = p.parent();
     x += p.peer.m_pos.m_x - p.peer.elem.scrollLeft;
     y += p.peer.m_pos.m_y - p.peer.elem.scrollTop;
-    if (p instanceof fan.fwt.Dialog)
+    if (p instanceof fan.fwt.Window)
     {
-      var dlg = p.peer.elem.parentNode;
-      x += dlg.offsetLeft;
-      y += dlg.offsetTop;
+      var elem = p.peer.elem;
+      if (elem.offsetParent)
+      {
+        do { x += elem.offsetLeft; y += elem.offsetTop; }
+        while (elem = elem.offsetParent);
+      }
     }
     p = p.parent();
   }
@@ -170,9 +173,7 @@ fan.fwt.WidgetPeer.prototype.attachDoubleClickEvent = function(self, elem)
   var peer = this;
   var func = function(e)
   {
-    var dis = peer.posOnDisplay(self);
-    var rel = fan.gfx.Point.make(e.clientX-dis.m_x, e.clientY-dis.m_y);
-
+    var rel = peer.getMousePos(self, e);
     var evt = fan.fwt.Event.make();
     evt.m_pos = rel;
     evt.m_widget = self;
@@ -225,9 +226,7 @@ fan.fwt.WidgetPeer.prototype.attachWheelEvent = function(self, elem, list)
       delta = -e.detail / 3;
     }
     if (delta) {
-      // find pos relative to widget
-      var dis = peer.posOnDisplay(self);
-      var rel = fan.gfx.Point.make(e.clientX-dis.m_x, e.clientY-dis.m_y);
+      var rel = peer.getMousePos(self, e);
 
       // TODO - need to fix for IE
       // TODO - only valid for mouseDown - so need to clean up this code
@@ -260,11 +259,7 @@ fan.fwt.WidgetPeer.prototype.attachEvents = function(self, evtId, elem, event, l
   var peer = this;
   var func = function(e)
   {
-    // find pos relative to widget
-    var dis = peer.posOnDisplay(self);
-    var rel = fan.gfx.Point.make(e.clientX-dis.m_x, e.clientY-dis.m_y);
-
-//    var rel = fan.gfx.Point.make(e.clientX, e.clientY);
+    var rel = peer.getMousePos(self, e);
 
     // TODO - need to fix for IE
     // TODO - only valid for mouseDown - so need to clean up this code
@@ -291,6 +286,20 @@ fan.fwt.WidgetPeer.prototype.attachEvents = function(self, evtId, elem, event, l
     elem.addEventListener(event, func, false);
   else
     elem.attachEvent("on"+event, func);
+}
+
+// find pos relative to widget
+fan.fwt.WidgetPeer.prototype.getMousePos = function(self, e)
+{
+  var doc = document.documentElement;
+  var body = document.body;
+
+  var x = e.pageX, y = e.pageY;
+  if (!x && e.clientX) x = e.clientX + (doc && doc.scrollLeft || body && body.scrollLeft || 0) - (doc && doc.clientLeft || body && body.clientLeft || 0);
+  if (!y && e.clientY) y = e.clientY + (doc && doc.scrollTop  || body && body.scrollTop  || 0) - (doc && doc.clientTop  || body && body.clientTop  || 0);
+
+  var dis = this.posOnDisplay(self);
+  return fan.gfx.Point.make(x-dis.m_x, y-dis.m_y);
 }
 
 fan.fwt.WidgetPeer.toKey = function(event)

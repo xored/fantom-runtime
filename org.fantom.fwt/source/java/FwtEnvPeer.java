@@ -81,10 +81,13 @@ public class FwtEnvPeer
 
     Image img = new Image(fwt.display, w, h);
     FwtGraphics g = new FwtGraphics(new GC(img), 0, 0, w, h);
-    try {
+    try
+    {
       f.call(g);
       return toFanImage(img);
-    } finally {
+    }
+    finally
+    {
       g.dispose();
     }
   }

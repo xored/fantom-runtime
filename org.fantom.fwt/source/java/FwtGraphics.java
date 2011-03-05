@@ -17,9 +17,15 @@ import org.eclipse.swt.graphics.Pattern;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.graphics.Transform;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.events.PaintEvent;
 
 public class FwtGraphics implements Graphics
 {
+  public FwtGraphics(PaintEvent e)
+  {
+    this(e.gc, e.x, e.y, e.width, e.height);
+  }
+
   public FwtGraphics(GC gc, int x, int y, int w, int h)
   {
     this.gc = gc;

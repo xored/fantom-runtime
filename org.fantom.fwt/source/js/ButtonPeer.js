@@ -34,12 +34,6 @@ fan.fwt.ButtonPeer.prototype.m_text = "";
 
 fan.fwt.ButtonPeer.prototype.m_pressed = false;
 
-fan.fwt.ButtonPeer.prototype.prefSize = function(self, hints)
-{
-  var pref = fan.fwt.WidgetPeer.prototype.prefSize.call(this, self, hints);
-  return fan.gfx.Size.make(pref.m_w, 25);
-}
-
 fan.fwt.ButtonPeer.prototype.create = function(parentElem, self)
 {
   if (self.m_mode == fan.fwt.ButtonMode.m_push || self.m_mode == fan.fwt.ButtonMode.m_toggle)
@@ -59,6 +53,7 @@ fan.fwt.ButtonPeer.prototype.makePush = function(parentElem, self)
   style.border  = "1px solid #404040";
   style.MozBorderRadius    = "4px";
   style.webkitBorderRadius = "4px";
+  style.borderRadius       = "4px";
   style.textAlign  = "center";
   style.cursor     = "default";
   style.whiteSpace = "nowrap";

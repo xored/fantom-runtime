@@ -85,6 +85,7 @@ fan.fwt.CanvasPeer.prototype.sync = function(self)
     }
   }
   this.elem.setAttribute("tabindex","-1");
+  this.elem.style.outline = "none";
   fan.fwt.WidgetPeer.prototype.sync.call(this, self);
 }
 
