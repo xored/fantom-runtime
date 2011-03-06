@@ -99,7 +99,7 @@ fan.fwt.DialogPeer.prototype.open = function(self)
   dlg.style.MozTransition    = "-moz-transform 100ms, opacity 100ms";
   dlg.style.MozTransform     = "scale(1.0)";
   dlg.style.webkitTransition = "-webkit-transform 100ms, opacity 100ms";
-  dlg.style.webkitTransform = "scale(1.0)";
+  dlg.style.webkitTransform  = "scale(1.0)";
   dlg.style.opacity = "1.0";
 
   // attach transition for dialog resizes
