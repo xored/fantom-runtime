@@ -103,6 +103,16 @@ public class WidgetPeer
     }
   };
 
+  public Cursor cursor(fan.fwt.Widget self) { return cursor; }
+  public void cursor(fan.fwt.Widget self, fan.fwt.Cursor c)
+  {
+    this.cursor = c;
+    if (control instanceof Control)
+    {
+      ((Control)control).setCursor(Fwt.get().cursor(c));
+    }
+  }
+
   // Size size
   public fan.gfx.Point pos(fan.fwt.Widget self) { return pos.get(); }
   public void pos(fan.fwt.Widget self, fan.gfx.Point v) { pos.set(v); onPosChange(); }
@@ -359,6 +369,8 @@ public class WidgetPeer
       if (parentControl instanceof ScrolledComposite)
         ((ScrolledComposite)parentControl).setContent((Control)control);
     }
+    //set up cursor
+    if (cursor != null) cursor(self, cursor);
 
     // callback on parent
     if (parentWidget != null) parentWidget.peer.childAdded(self);
@@ -560,6 +572,7 @@ public class WidgetPeer
 //////////////////////////////////////////////////////////////////////////
 
   fan.fwt.Widget self;
+  fan.fwt.Cursor cursor;
   Widget control;
   Key modifiers;
   boolean activeKeyListener   = false;

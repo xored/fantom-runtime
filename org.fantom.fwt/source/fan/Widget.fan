@@ -53,6 +53,8 @@ abstract class Widget
   **
   native Bool visible
 
+  native Cursor? cursor
+
   **
   ** Meta-data that can be used by `Pane` for layout.
   **
