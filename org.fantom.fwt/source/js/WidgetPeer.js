@@ -161,8 +161,8 @@ fan.fwt.WidgetPeer.prototype.attachTo = function(self, elem)
   this.attachEvents(self, fan.fwt.EventId.m_mouseDown,  elem, "mousedown",  self.m_onMouseDown.list());
   this.attachEvents(self, fan.fwt.EventId.m_mouseMove,  elem, "mousemove",  self.m_onMouseMove.list());
   this.attachEvents(self, fan.fwt.EventId.m_mouseUp,    elem, "mouseup",    self.m_onMouseUp.list());
-  this.attachEvents(self, fan.fwt.EventId.m_keyDown,  elem, "keydown",  self.m_onKeyDown.list());
-  this.attachEvents(self, fan.fwt.EventId.m_keyUp,    elem, "keyup",    self.m_onKeyUp.list());
+  this.attachEvents(self, fan.fwt.EventId.m_keyDown,    elem, "keydown",    self.m_onKeyDown.list());
+  this.attachEvents(self, fan.fwt.EventId.m_keyUp,      elem, "keyup",      self.m_onKeyUp.list());
   //this.attachEvents(self, fan.fwt.EventId.m_mouseHover, elem, "mousehover", self.m_onMouseHover.list());
   this.attachDoubleClickEvent(self, elem);
   this.attachWheelEvent(self, elem, self.m_onMouseWheel.list());
@@ -277,10 +277,9 @@ fan.fwt.WidgetPeer.prototype.attachEvents = function(self, evtId, elem, event, l
     evt.m_widget = self;
     evt.m_count = 1;
     if (e.currentTarget)  // FF
-        evt.m_button = e.button + 1;    
+        evt.m_button = e.button + 1;
     else  // IE
         evt.m_button = e.button == 2 ? 3 : (e.button==4 ? 2 : 1);
-
     evt.m_key = fan.fwt.WidgetPeer.toKey(e);
     for (var i=0; i<list.size(); i++)
     {
@@ -398,9 +397,23 @@ fan.fwt.WidgetPeer.prototype.sync = function(self, w, h)  // w,h override
     width   = w + "px";
     height  = h + "px";
 
-    //set up cursor
-    if (this.m_cursor != null) cursor = this.m_cursor.toStr();
-    else cursor = "";
+    // set up cursor
+    var c = this.m_cursor;
+    if (c != null)
+    {
+      var image = c.m_image;
+      if (image != null)
+      {
+        var str = 'url(' + fan.fwt.WidgetPeer.uriToImageSrc(image.m_uri) + ')';
+        str += ' ' + c.m_x;
+        str += ' ' + c.m_y;
+        str += ', inherit';
+        cursor = str;
+      }
+      else cursor = this.m_cursor.toStr();
+    }
+    // use 'inherit' value if no cursor specified. It equals to skip property blank
+    else cursor = "inherit";
   }
 }
 

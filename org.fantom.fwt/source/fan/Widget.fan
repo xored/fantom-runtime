@@ -16,8 +16,6 @@ using gfx
 //   - focus management
 // Graphics:
 //   - affine transformations
-//   - buffered image
-//   - Image.resize / draw resized
 //
 
 **
@@ -53,6 +51,10 @@ abstract class Widget
   **
   native Bool visible
 
+  **
+  ** Mouse cursor to use when the mouse passes over the control.
+  ** If not specified cursor of the parent control will appear.
+  **
   native Cursor? cursor
 
   **

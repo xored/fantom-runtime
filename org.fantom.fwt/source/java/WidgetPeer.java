@@ -54,6 +54,11 @@ public class WidgetPeer
     return self.parent();
   }
 
+  public Widget control()
+  {
+    return control;
+  }
+
   public Widget parentControl()
   {
     fan.fwt.Widget p = self.parent();
@@ -103,15 +108,9 @@ public class WidgetPeer
     }
   };
 
-  public Cursor cursor(fan.fwt.Widget self) { return cursor; }
-  public void cursor(fan.fwt.Widget self, fan.fwt.Cursor c)
-  {
-    this.cursor = c;
-    if (control instanceof Control)
-    {
-      ((Control)control).setCursor(Fwt.get().cursor(c));
-    }
-  }
+  public Cursor cursor(fan.fwt.Widget self) { return cursor.get(); }
+  public void cursor(fan.fwt.Widget self, Cursor v) { cursor.set(v); }
+  public final Prop.CursorProp cursor = new Prop.CursorProp(this);
 
   // Size size
   public fan.gfx.Point pos(fan.fwt.Widget self) { return pos.get(); }
@@ -369,8 +368,6 @@ public class WidgetPeer
       if (parentControl instanceof ScrolledComposite)
         ((ScrolledComposite)parentControl).setContent((Control)control);
     }
-    //set up cursor
-    if (cursor != null) cursor(self, cursor);
 
     // callback on parent
     if (parentWidget != null) parentWidget.peer.childAdded(self);
@@ -571,8 +568,7 @@ public class WidgetPeer
 // Fields
 //////////////////////////////////////////////////////////////////////////
 
-  fan.fwt.Widget self;
-  fan.fwt.Cursor cursor;
+  public fan.fwt.Widget self;
   Widget control;
   Key modifiers;
   boolean activeKeyListener   = false;

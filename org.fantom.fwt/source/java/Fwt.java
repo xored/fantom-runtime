@@ -217,19 +217,28 @@ public class Fwt
   */
   public int cursorStyle(fan.fwt.Cursor c)
   {
-	if (cursorStyles == null)
-	{
+  if (cursorStyles == null)
+  {
       cursorStyles = new HashMap();
-      cursorStyles.put(fan.fwt.Cursor.def, SWT.CURSOR_ARROW);
-      cursorStyles.put(fan.fwt.Cursor.crosshair, SWT.CURSOR_CROSS);
-      cursorStyles.put(fan.fwt.Cursor.wait, SWT.CURSOR_WAIT);
-      cursorStyles.put(fan.fwt.Cursor.pointer, SWT.CURSOR_HAND);
-      cursorStyles.put(fan.fwt.Cursor.help, SWT.CURSOR_HELP);
-      cursorStyles.put(fan.fwt.Cursor.text, SWT.CURSOR_IBEAM);
-      cursorStyles.put(fan.fwt.Cursor.progress, SWT.CURSOR_APPSTARTING);
-      cursorStyles.put(fan.fwt.Cursor.move, SWT.CURSOR_SIZEALL);
-	}
-	return (Integer)cursorStyles.get(c);
+      cursorStyles.put(fan.fwt.Cursor.defVal,     SWT.CURSOR_ARROW);
+      cursorStyles.put(fan.fwt.Cursor.pointer,    SWT.CURSOR_HAND);
+      cursorStyles.put(fan.fwt.Cursor.text,       SWT.CURSOR_IBEAM);
+      cursorStyles.put(fan.fwt.Cursor.crosshair,  SWT.CURSOR_CROSS);
+      cursorStyles.put(fan.fwt.Cursor.wait,       SWT.CURSOR_WAIT);
+      cursorStyles.put(fan.fwt.Cursor.help,       SWT.CURSOR_HELP);
+      cursorStyles.put(fan.fwt.Cursor.progress,   SWT.CURSOR_APPSTARTING);
+      cursorStyles.put(fan.fwt.Cursor.move,       SWT.CURSOR_SIZEALL);
+      cursorStyles.put(fan.fwt.Cursor.notAllowed, SWT.CURSOR_NO);
+      cursorStyles.put(fan.fwt.Cursor.nResize,    SWT.CURSOR_SIZEN);
+      cursorStyles.put(fan.fwt.Cursor.sResize,    SWT.CURSOR_SIZES);
+      cursorStyles.put(fan.fwt.Cursor.wResize,    SWT.CURSOR_SIZEW);
+      cursorStyles.put(fan.fwt.Cursor.eResize,    SWT.CURSOR_SIZEE);
+      cursorStyles.put(fan.fwt.Cursor.swResize,   SWT.CURSOR_SIZESW);
+      cursorStyles.put(fan.fwt.Cursor.seResize,   SWT.CURSOR_SIZESE);
+      cursorStyles.put(fan.fwt.Cursor.nwResize,   SWT.CURSOR_SIZENW);
+      cursorStyles.put(fan.fwt.Cursor.neResize,   SWT.CURSOR_SIZENE);
+  }
+  return (Integer)cursorStyles.get(c);
   }
 
   /**
@@ -239,11 +248,11 @@ public class Fwt
   {
     if (c == null) return;
     Cursor x = (Cursor)cursors.get(c);
-	if (x != null)
-	{
-	  x.dispose();
-	  cursors.remove(c);
-	}
+  if (x != null)
+  {
+    x.dispose();
+    cursors.remove(c);
+  }
   }
 
   /**
@@ -252,8 +261,8 @@ public class Fwt
   public void disposeAllCursors()
   {
     Iterator it = (Iterator)cursors.values().iterator();
-	while (it.hasNext()) ((Cursor)it.next()).dispose();
-	cursors.clear();
+  while (it.hasNext()) ((Cursor)it.next()).dispose();
+  cursors.clear();
   }
 
 //////////////////////////////////////////////////////////////////////////
