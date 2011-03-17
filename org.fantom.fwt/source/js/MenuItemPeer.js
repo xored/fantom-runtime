@@ -50,9 +50,11 @@ fan.fwt.MenuItemPeer.prototype.create = function(parentElem, self)
     div.style.color = "";
   }
 
-  div.onclick = function()
+  div.onclick = function(e)
   {
     if (!self.peer.m_enabled) return;
+
+    self.peer.m_selected = !self.peer.m_selected; 
 
     var evt = fan.fwt.Event.make();
     evt.id = fan.fwt.EventId.m_action;
@@ -60,8 +62,15 @@ fan.fwt.MenuItemPeer.prototype.create = function(parentElem, self)
 
     var list = self.m_onAction.list();
     for (var i=0; i<list.size(); i++) list.get(i).call(evt);
-  }
 
+    if (self.m_mode == fan.fwt.MenuItemMode.m_check) {
+        e.stopPropagation()
+        if (this.firstChild!=null)
+            if (this.firstChild.type=="checkbox")
+                this.firstChild.checked = self.peer.m_selected;
+    }
+  }
+   
   parentElem.appendChild(div);
   return div;
 }
@@ -80,10 +89,20 @@ fan.fwt.MenuItemPeer.prototype.sync = function(self)
   }
 
   // add new text node
+  if (self.m_mode == fan.fwt.MenuItemMode.m_check) {
+    var check = document.createElement("input");
+    check.type = "checkbox";
+    check.checked = self.peer.m_selected;
+    check.onclick = function (e) {
+        this.checked = !this.checked;
+    }
+    div.appendChild(check);
+  }
   div.appendChild(document.createTextNode(this.m_text));
 
   // sync state
   div.style.color = self.peer.m_enabled ? "#000" : "#999";
+
 
   // account for padding/border
   var w = this.m_size.m_w - 8;
