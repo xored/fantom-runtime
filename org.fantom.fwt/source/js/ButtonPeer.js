@@ -57,6 +57,7 @@ fan.fwt.ButtonPeer.prototype.makePush = function(parentElem, self)
   style.textAlign  = "center";
   style.cursor     = "default";
   style.whiteSpace = "nowrap";
+  fan.fwt.WidgetPeer.prototype.cursor$.call(this,self,fan.fwt.Cursor.m_defVal);
 
   var $this = this;
   div.onmousedown = function(event)
@@ -187,7 +188,8 @@ fan.fwt.ButtonPeer.prototype.sync = function(self)
     }
 
     // add new text node
-    div.appendChild(document.createTextNode(this.m_text));
+    var txt = document.createTextNode(this.m_text)
+    div.appendChild(txt);
 
     // account for padding/border
     h -= 8;
