@@ -1,3 +1,10 @@
+//
+// Copyright (c) 2008, Brian Frank and Andy Frank
+// Licensed under the Academic Free License version 3.0
+//
+// History:
+//   16 Nov 08  Yuri Strot  Creation
+//
 package fan.fwt;
 
 import fan.sys.*;

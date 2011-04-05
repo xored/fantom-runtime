@@ -90,33 +90,39 @@ fan.fwt.WidgetPeer.prototype.pack = function(self)
   return self;
 }
 
+fan.fwt.WidgetPeer.prototype.m_enabled = true;
 fan.fwt.WidgetPeer.prototype.enabled = function(self) { return this.m_enabled; }
 fan.fwt.WidgetPeer.prototype.enabled$ = function(self, val)
 {
   this.m_enabled = val;
   if (this.elem != null) this.sync(self);
 }
-fan.fwt.WidgetPeer.prototype.m_enabled = true;
 
+fan.fwt.WidgetPeer.prototype.m_visible = true;
 fan.fwt.WidgetPeer.prototype.visible = function(self) { return this.m_visible; }
 fan.fwt.WidgetPeer.prototype.visible$ = function(self, val) { this.m_visible = val; }
-fan.fwt.WidgetPeer.prototype.m_visible = true;
 
-fan.fwt.WidgetPeer.prototype.cursor = function(self) { return this.m_cursor; }
-fan.fwt.WidgetPeer.prototype.cursor$ = function(self, cursor)
-{
-  this.m_cursor = cursor;
-  if (this.elem != null) this.sync(self);
-}
+fan.fwt.WidgetPeer.prototype.m_$defCursor = "auto";
 fan.fwt.WidgetPeer.prototype.m_cursor = null;
+fan.fwt.WidgetPeer.prototype.cursor = function(self) { return this.m_cursor; }
+fan.fwt.WidgetPeer.prototype.cursor$ = function(self, val)
+{
+  this.m_cursor = val;
+  if (this.elem != null)
+  {
+    this.elem.style.cursor = val != null
+      ? fan.fwt.WidgetPeer.cursorToCss(val)
+      : this.m_$defCursor;
+  }
+}
 
+fan.fwt.WidgetPeer.prototype.m_pos = fan.gfx.Point.make(0,0);
 fan.fwt.WidgetPeer.prototype.pos = function(self) { return this.m_pos; }
 fan.fwt.WidgetPeer.prototype.pos$ = function(self, val) { this.m_pos = val; }
-fan.fwt.WidgetPeer.prototype.m_pos = fan.gfx.Point.make(0,0);
 
+fan.fwt.WidgetPeer.prototype.m_size = fan.gfx.Size.make(0,0);
 fan.fwt.WidgetPeer.prototype.size = function(self) { return this.m_size; }
 fan.fwt.WidgetPeer.prototype.size$ = function(self, val) { this.m_size = val; }
-fan.fwt.WidgetPeer.prototype.m_size = fan.gfx.Size.make(0,0);
 
 //////////////////////////////////////////////////////////////////////////
 // Focus
@@ -146,6 +152,7 @@ fan.fwt.WidgetPeer.prototype.attach = function(self)
   // create control and initialize
   var elem = this.create(parent.peer.elem, self);
   this.attachTo(self, elem);
+  self.cursor$(this.m_cursor);
 
   // callback on parent
   //parent.peer.childAdded(self);
@@ -161,8 +168,8 @@ fan.fwt.WidgetPeer.prototype.attachTo = function(self, elem)
   this.attachEvents(self, fan.fwt.EventId.m_mouseDown,  elem, "mousedown",  self.m_onMouseDown.list());
   this.attachEvents(self, fan.fwt.EventId.m_mouseMove,  elem, "mousemove",  self.m_onMouseMove.list());
   this.attachEvents(self, fan.fwt.EventId.m_mouseUp,    elem, "mouseup",    self.m_onMouseUp.list());
-  this.attachEvents(self, fan.fwt.EventId.m_keyDown,    elem, "keydown",    self.m_onKeyDown.list());
-  this.attachEvents(self, fan.fwt.EventId.m_keyUp,      elem, "keyup",      self.m_onKeyUp.list());
+  this.attachEvents(self, fan.fwt.EventId.m_keyDown,  elem, "keydown",  self.m_onKeyDown.list());
+  this.attachEvents(self, fan.fwt.EventId.m_keyUp,    elem, "keyup",    self.m_onKeyUp.list());
   //this.attachEvents(self, fan.fwt.EventId.m_mouseHover, elem, "mousehover", self.m_onMouseHover.list());
   this.attachDoubleClickEvent(self, elem);
   this.attachWheelEvent(self, elem, self.m_onMouseWheel.list());
@@ -181,34 +188,25 @@ fan.fwt.WidgetPeer.prototype.attachDoubleClickEvent = function(self, elem)
   var peer = this;
   var func = function(e)
   {
-    var rel = peer.getMousePos(self, e);
-    var evt = fan.fwt.Event.make();
-    evt.m_pos = rel;
-    evt.m_widget = self;
-    evt.m_count = 2;
-    if (e.currentTarget)  // FF
-        evt.m_button = e.button + 1;    
-    else  // IE
-        evt.m_button = e.button == 2 ? 3 : (e.button==4 ? 2 : 1);
-    evt.m_key = fan.fwt.WidgetPeer.toKey(e);
-
-    evt.m_id = fan.fwt.EventId.m_mouseDown;
+    var evt = peer.toEvent(self, e, fan.fwt.EventId.m_mouseDown, 2);
     list = self.m_onMouseDown.list();
     for (var i=0; i<list.size(); i++)
     {
       var meth = list.get(i);
       meth.call(evt);
     }
-
-    evt.m_id = fan.fwt.EventId.m_mouseUp;
     list = self.m_onMouseUp.list();
     for (var i=0; i<list.size(); i++)
     {
       var meth = list.get(i);
       meth.call(evt);
     }
-
-    return false;
+    if (evt.m_consumed)
+    {
+      if (e.preventDefault) e.preventDefault();
+      e.returnValue = false; //  IE
+      return false;
+    }
   }
 
   if (elem.addEventListener)
@@ -234,25 +232,18 @@ fan.fwt.WidgetPeer.prototype.attachWheelEvent = function(self, elem, list)
       delta = -e.detail / 3;
     }
     if (delta) {
-      var rel = peer.getMousePos(self, e);
-
-      // TODO - need to fix for IE
-      // TODO - only valid for mouseDown - so need to clean up this code
-      var evt = fan.fwt.Event.make();
-      evt.m_id = fan.fwt.EventId.m_mouseWheel;
-      evt.m_pos = rel;
-      evt.m_widget = self;
-      evt.m_count = delta;
-      evt.m_button = 1;
-      evt.m_key = fan.fwt.WidgetPeer.toKey(e);
+      var evt = peer.toEvent(self, e, fan.fwt.EventId.m_mouseWheel, delta, 1);
       for (var i=0; i<list.size(); i++)
       {
         var meth = list.get(i);
         meth.call(evt);
       }
-      if (e.preventDefault) e.preventDefault();
-      e.returnValue = false; //  IE
-      return false;
+      if (evt.m_consumed)
+      {
+        if (e.preventDefault) e.preventDefault();
+        e.returnValue = false; //  IE
+        return false;
+      }
     }
   }
 
@@ -267,32 +258,47 @@ fan.fwt.WidgetPeer.prototype.attachEvents = function(self, evtId, elem, event, l
   var peer = this;
   var func = function(e)
   {
-    var rel = peer.getMousePos(self, e);
-
-    // TODO - need to fix for IE
-    // TODO - only valid for mouseDown - so need to clean up this code
-    var evt = fan.fwt.Event.make();
-    evt.m_id = evtId;
-    evt.m_pos = rel;
-    evt.m_widget = self;
-    evt.m_count = 1;
-    if (e.currentTarget)  // FF
-        evt.m_button = e.button + 1;
-    else  // IE
-        evt.m_button = e.button == 2 ? 3 : (e.button==4 ? 2 : 1);
-    evt.m_key = fan.fwt.WidgetPeer.toKey(e);
+    var evt = peer.toEvent(self, e, evtId, 1)
     for (var i=0; i<list.size(); i++)
     {
       var meth = list.get(i);
       meth.call(evt);
     }
-    return false;
+    if (evt.m_consumed)
+    {
+      if (e.preventDefault) e.preventDefault();
+      e.returnValue = false; //  IE
+      return false;
+    }
   }
 
   if (elem.addEventListener)
     elem.addEventListener(event, func, false);
   else
     elem.attachEvent("on"+event, func);
+}
+
+fan.fwt.WidgetPeer.prototype.toEvent = function(self, e, id, count, button)
+{
+  var evt = fan.fwt.Event.make();
+  evt.m_id = id;
+  evt.m_pos = this.getMousePos(self, e);
+  evt.m_widget = self;
+  evt.m_count = count;
+  if (button === undefined)
+  {
+    if (e.currentTarget)  // FF
+    	button = e.button + 1;
+    else  // IE
+      button = e.button == 2 ? 3 : (e.button==4 ? 2 : 1);
+  }
+  evt.m_button = button;
+  evt.m_key = fan.fwt.WidgetPeer.toKey(e);
+  if (e.keyCode != null && e.keyCode > 0)
+  {
+    evt.m_keyChar = e.keyCode;
+  }
+  return evt;
 }
 
 // find pos relative to widget
@@ -396,24 +402,6 @@ fan.fwt.WidgetPeer.prototype.sync = function(self, w, h)  // w,h override
     top     = this.m_pos.m_y  + "px";
     width   = w + "px";
     height  = h + "px";
-
-    // set up cursor
-    var c = this.m_cursor;
-    if (c != null)
-    {
-      var image = c.m_image;
-      if (image != null)
-      {
-        var str = 'url(' + fan.fwt.WidgetPeer.uriToImageSrc(image.m_uri) + ')';
-        str += ' ' + c.m_x;
-        str += ' ' + c.m_y;
-        str += ', inherit';
-        cursor = str;
-      }
-      else cursor = this.m_cursor.toStr();
-    }
-    // use 'inherit' value if no cursor specified. It equals to skip property blank
-    else cursor = "inherit";
   }
 }
 
@@ -427,8 +415,22 @@ fan.fwt.WidgetPeer.fontToCss = function(font)
   if (font.m_bold)   s += "bold ";
   if (font.m_italic) s += "italic ";
   s += font.m_size + "px ";
-  s += font.m_name;
+  s += font.m_$name;
   return s;
+}
+
+fan.fwt.WidgetPeer.cursorToCss = function(cursor)
+{
+  // predefined cursor
+  var img = cursor.m_image;
+  if (img == null) return cursor.toStr();
+
+  // image cursor
+  var s = "url(" + fan.fwt.WidgetPeer.uriToImageSrc(img.m_uri) + ")";
+  s += " " + cursor.m_x;
+  s += " " + cursor.m_y;
+  s += ", auto";
+  return s
 }
 
 fan.fwt.WidgetPeer.uriToImageSrc = function(uri)
