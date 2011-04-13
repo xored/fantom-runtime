@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: %Bundle-Name
 Bundle-SymbolicName: org.fantom.sys;singleton:=true
-Bundle-Version: 1.0.56.qualifier
+Bundle-Version: 1.0.58.qualifier
 Bundle-Vendor: %Bundle-Vendor
 Bundle-Localization: plugin
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
@@ -15,6 +15,6 @@ Export-Package: fan.sys,
  fanx.tools,
  fanx.util
 Require-Bundle: org.eclipse.core.runtime,
- org.fantom;bundle-version="1.0.56";visibility:=reexport
+ org.fantom;bundle-version="1.0.58";visibility:=reexport
 Bundle-Activator: org.fantom.internal.sys.Activator
 Bundle-ActivationPolicy: lazy
