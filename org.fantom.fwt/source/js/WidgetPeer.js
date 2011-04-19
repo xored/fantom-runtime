@@ -49,14 +49,12 @@ fan.fwt.WidgetPeer.prototype.posOnDisplay = function(self)
     if (p instanceof fan.fwt.Tab) p = p.parent();
     x += p.peer.m_pos.m_x - p.peer.elem.scrollLeft;
     y += p.peer.m_pos.m_y - p.peer.elem.scrollTop;
-    if (p instanceof fan.fwt.Window)
+    if (p instanceof fan.fwt.Dialog)
     {
-      var elem = p.peer.elem;
-      if (elem.offsetParent)
-      {
-        do { x += elem.offsetLeft; y += elem.offsetTop; }
-        while (elem = elem.offsetParent);
-      }
+      var dlg = p.peer.elem.parentNode;
+      x += dlg.offsetLeft;
+      y += dlg.offsetTop;
+      break; // dialogs are always relative to Window origin
     }
     p = p.parent();
   }
@@ -307,12 +305,19 @@ fan.fwt.WidgetPeer.prototype.getMousePos = function(self, e)
   var doc = document.documentElement;
   var body = document.body;
 
-  var x = e.pageX, y = e.pageY;
-  if (!x && e.clientX) x = e.clientX + (doc && doc.scrollLeft || body && body.scrollLeft || 0) - (doc && doc.clientLeft || body && body.clientLeft || 0);
-  if (!y && e.clientY) y = e.clientY + (doc && doc.scrollTop  || body && body.scrollTop  || 0) - (doc && doc.clientTop  || body && body.clientTop  || 0);
+  var dis  = this.posOnDisplay(self);
+  var mx   = e.clientX - dis.m_x;
+  var my   = e.clientY - dis.m_y;
 
-  var dis = this.posOnDisplay(self);
-  return fan.gfx.Point.make(x-dis.m_x, y-dis.m_y);
+  // make sure to rel against window root
+  var win = self.window();
+  if (win != null && win.peer.root != null)
+  {
+    mx -= win.peer.root.offsetLeft;
+    my -= win.peer.root.offsetTop;
+  }
+
+  return fan.gfx.Point.make(mx, my);
 }
 
 fan.fwt.WidgetPeer.toKey = function(event)

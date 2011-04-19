@@ -9,7 +9,7 @@
 using gfx
 
 **
-** 
+** Slider is a `Widget` that represent a range of positive, numeric values
 **
 @Js
 @Serializable
@@ -25,7 +25,7 @@ class Slider : Widget
   }
 
   **
-  ** Callback when scroll bar value is modified.
+  ** Callback when slider value is modified.
   **
   ** Event id fired:
   **   - `EventId.modified`
@@ -33,8 +33,9 @@ class Slider : Widget
   ** Event fields:
   **   - `Event.data`: new value of scroll bar
   **
-  @Transient readonly EventListeners onModify := EventListeners()
+  @Transient EventListeners onModify := EventListeners()
     { it.onModify = |->| { checkModifyListeners } }
+    { private set }
   internal native Void checkModifyListeners()
 
   **

@@ -3,7 +3,7 @@
 // Licensed under the Academic Free License version 3.0
 //
 // History:
-//   16 Nov 08  Yuri Strot  Creation
+//   16 Nov 10  Yuri Strot  Creation
 //
 package fan.fwt;
 
@@ -11,8 +11,8 @@ import fan.sys.*;
 import fan.gfx.Orientation;
 import org.eclipse.swt.*;
 import org.eclipse.swt.widgets.*;
-import org.eclipse.swt.widgets.Slider;;
-import org.eclipse.swt.widgets.Widget;;
+import org.eclipse.swt.widgets.Slider;
+import org.eclipse.swt.widgets.Widget;
 import org.eclipse.swt.events.*;
 
 public class SliderPeer
