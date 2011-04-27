@@ -236,7 +236,8 @@ fan.fwt.WidgetPeer.prototype.attachWheelEvent = function(self, elem, list)
       delta = -e.detail / 3;
     }
     if (delta) {
-      var evt = peer.toEvent(self, e, fan.fwt.EventId.m_mouseWheel, delta, 1);
+      var count = delta > 0 ? Math.ceil(delta) : Math.floor(delta);
+      var evt = peer.toEvent(self, e, fan.fwt.EventId.m_mouseWheel, count, 1);
       for (var i=0; i<list.size(); i++)
       {
         var meth = list.get(i);
