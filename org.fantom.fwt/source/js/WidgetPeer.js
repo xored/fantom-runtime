@@ -169,14 +169,15 @@ fan.fwt.WidgetPeer.prototype.attachTo = function(self, elem)
   this.sync(self);
   this.attachEvents(self, fan.fwt.EventId.m_mouseEnter, elem, "mouseover",  self.m_onMouseEnter.list());
   this.attachEvents(self, fan.fwt.EventId.m_mouseExit,  elem, "mouseout",   self.m_onMouseExit.list());
-  this.attachEvents(self, fan.fwt.EventId.m_mouseDown,  elem, "mousedown",  self.m_onMouseDown.list());
   this.attachEvents(self, fan.fwt.EventId.m_mouseMove,  elem, "mousemove",  self.m_onMouseMove.list());
+
+  this.attachEvents(self, fan.fwt.EventId.m_mouseDown,  elem, "mousedown",  self.m_onMouseDown.list());
   this.attachEvents(self, fan.fwt.EventId.m_mouseUp,    elem, "mouseup",    self.m_onMouseUp.list());
-  this.attachEvents(self, fan.fwt.EventId.m_keyDown,  elem, "keydown",  self.m_onKeyDown.list());
-  this.attachEvents(self, fan.fwt.EventId.m_keyUp,    elem, "keyup",    self.m_onKeyUp.list());
-  //this.attachEvents(self, fan.fwt.EventId.m_mouseHover, elem, "mousehover", self.m_onMouseHover.list());
+  this.attachEvents(self, fan.fwt.EventId.m_keyDown,    elem, "keydown",    self.m_onKeyDown.list());
+  this.attachEvents(self, fan.fwt.EventId.m_keyUp,      elem, "keyup",      self.m_onKeyUp.list());
   this.attachDoubleClickEvent(self, elem);
   this.attachWheelEvent(self, elem, self.m_onMouseWheel.list());
+  //this.attachEvents(self, fan.fwt.EventId.m_mouseHover, elem, "mousehover", self.m_onMouseHover.list());
 
   // recursively attach my children
   var kids = self.m_kids;
@@ -185,6 +186,17 @@ fan.fwt.WidgetPeer.prototype.attachTo = function(self, elem)
     var kid = kids.get(i);
     kid.peer.attach(kid);
   }
+}
+
+fan.fwt.WidgetPeer.prototype.attachEvents = function(self, evtId, elem, event, list)
+{
+  var peer = this;
+  var func = function(e) { return peer.fireEvent(self, e, evtId, list, 1) }
+
+  if (elem.addEventListener)
+    elem.addEventListener(event, func, false);
+  else
+    elem.attachEvent("on"+event, func);
 }
 
 fan.fwt.WidgetPeer.prototype.attachDoubleClickEvent = function(self, elem)
@@ -222,82 +234,66 @@ fan.fwt.WidgetPeer.prototype.attachDoubleClickEvent = function(self, elem)
 
 fan.fwt.WidgetPeer.prototype.attachWheelEvent = function(self, elem, list)
 {
-  if (list.size() == 0) return;
   var peer = this;
   var func = function(e)
   {
     var delta = 0;
     if (!e) e = window.event; // IE
-    if (e.wheelDelta) { 
-      // IE, Opera, safari, chrome
-      delta = e.wheelDelta / 120;
-    } else if (e.detail) { 
-      // Mozilla
-      delta = -e.detail / 3;
-    }
-    if (delta) {
+    if (e.wheelDelta) delta = e.wheelDelta / 120; // IE, Opera, safari, chrome
+    else if (e.detail) delta = -e.detail / 3; // Mozilla
+    if (delta)
+    {
       var count = delta > 0 ? Math.ceil(delta) : Math.floor(delta);
-      var evt = peer.toEvent(self, e, fan.fwt.EventId.m_mouseWheel, count, 1);
-      for (var i=0; i<list.size(); i++)
-      {
-        var meth = list.get(i);
-        meth.call(evt);
-      }
-      if (evt.m_consumed)
-      {
-        if (e.preventDefault) e.preventDefault();
-        e.returnValue = false; //  IE
-        return false;
-      }
-    }
-  }
-
-  if (window.addEventListener) // mozilla, safari, chrome
-    window.addEventListener('DOMMouseScroll', func, false);
-  // IE, Opera.
-  window.onmousewheel = document.onmousewheel = func;
-}
-
-fan.fwt.WidgetPeer.prototype.attachEvents = function(self, evtId, elem, event, list)
-{
-  var peer = this;
-  var func = function(e)
-  {
-    var evt = peer.toEvent(self, e, evtId, 1)
-    for (var i=0; i<list.size(); i++)
-    {
-      var meth = list.get(i);
-      meth.call(evt);
-    }
-    if (evt.m_consumed)
-    {
-      if (e.preventDefault) e.preventDefault();
-      e.returnValue = false; //  IE
-      return false;
+      return peer.fireEvent(self, e, fan.fwt.EventId.m_mouseWheel, list, count, 1);
     }
   }
 
   if (elem.addEventListener)
-    elem.addEventListener(event, func, false);
-  else
-    elem.attachEvent("on"+event, func);
+  {
+    // mozilla
+    elem.addEventListener('DOMMouseScroll', func, false);
+    // safari, chrome
+    elem.addEventListener('mousewheel', func, false);
+  }
+  // IE, Opera.
+  else elem.attachEvent("onmousewheel", func);
+}
+
+fan.fwt.WidgetPeer.prototype.fireEvent = function(self, e, id, list, count, button)
+{
+  if (!e) e = window.event; // IE
+  var evt = this.toEvent(self, e, id, count, button);
+  for (var i = 0; i < list.size(); i++)
+  {
+    var meth = list.get(i);
+    meth.call(evt);
+  }
+  if (evt.m_consumed)
+  {
+    if (e.preventDefault) e.preventDefault();
+    e.returnValue = false; //  IE
+    // avoid bubbling for compatibility
+	if (e.stopPropagation) e.stopPropagation();
+	e.cancelBubble = true;
+    return false;
+  }
 }
 
 fan.fwt.WidgetPeer.prototype.toEvent = function(self, e, id, count, button)
 {
   var evt = fan.fwt.Event.make();
   evt.m_id = id;
-  evt.m_pos = this.getMousePos(self, e);
   evt.m_widget = self;
-  evt.m_count = count;
+  evt.m_pos = this.getMousePos(self, e);
   if (button === undefined)
   {
     if (e.currentTarget)  // FF
     	button = e.button + 1;
     else  // IE
-      button = e.button == 2 ? 3 : (e.button==4 ? 2 : 1);
+      button = e.button == 2 ? 3 : (e.button == 4 ? 2 : 1);
   }
   evt.m_button = button;
+  evt.m_count = count;
   evt.m_key = fan.fwt.WidgetPeer.toKey(e);
   if (e.keyCode != null && e.keyCode > 0)
   {
@@ -539,4 +535,22 @@ fan.fwt.WidgetPeer.setBg = function(elem, brush)
     return;
   }
 }
-
+/*
+fan.fwt.WidgetPeer.prototype.clicks =
+{
+  count : 0,
+  timerId : 0,
+  onClick : function(element)
+  {
+    if (this.timerId > 0)
+    {
+      clearTimeout(this.timerId);
+      timerId = 0;
+    }
+    this.count++;
+    var t = this;
+    var f = function() { t.count = 0; }
+    this.timerId = setTimeout(f);
+  }
+}
+*/
