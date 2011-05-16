@@ -134,6 +134,12 @@ fan.fwt.WidgetPeer.prototype.size$ = function(self, val) { this.m_size = val; }
 
 fan.fwt.WidgetPeer.prototype.focus = function(self)
 {
+  if (this.elem != null) this.elem.focus();
+}
+
+fan.fwt.WidgetPeer.prototype.hasFocus = function(self)
+{
+  return this.elem != null && this.elem === document.activeElement;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -169,15 +175,14 @@ fan.fwt.WidgetPeer.prototype.attachTo = function(self, elem)
   this.sync(self);
   this.attachEvents(self, fan.fwt.EventId.m_mouseEnter, elem, "mouseover",  self.m_onMouseEnter.list());
   this.attachEvents(self, fan.fwt.EventId.m_mouseExit,  elem, "mouseout",   self.m_onMouseExit.list());
-  this.attachEvents(self, fan.fwt.EventId.m_mouseMove,  elem, "mousemove",  self.m_onMouseMove.list());
-
   this.attachEvents(self, fan.fwt.EventId.m_mouseDown,  elem, "mousedown",  self.m_onMouseDown.list());
+  this.attachEvents(self, fan.fwt.EventId.m_mouseMove,  elem, "mousemove",  self.m_onMouseMove.list());
   this.attachEvents(self, fan.fwt.EventId.m_mouseUp,    elem, "mouseup",    self.m_onMouseUp.list());
-  this.attachEvents(self, fan.fwt.EventId.m_keyDown,    elem, "keydown",    self.m_onKeyDown.list());
-  this.attachEvents(self, fan.fwt.EventId.m_keyUp,      elem, "keyup",      self.m_onKeyUp.list());
-  this.attachDoubleClickEvent(self, elem);
-  this.attachWheelEvent(self, elem, self.m_onMouseWheel.list());
   //this.attachEvents(self, fan.fwt.EventId.m_mouseHover, elem, "mousehover", self.m_onMouseHover.list());
+  this.attachEvents(self, fan.fwt.EventId.m_mouseWheel, elem, "mousewheel", self.m_onMouseWheel.list());
+
+  this.attachKeyEvents(self, fan.fwt.EventId.m_keyDown, elem, "keydown",    self.m_onKeyDown.list());
+  this.attachKeyEvents(self, fan.fwt.EventId.m_keyUp,   elem, "keyup",      self.m_onKeyUp.list());
 
   // recursively attach my children
   var kids = self.m_kids;
@@ -191,7 +196,10 @@ fan.fwt.WidgetPeer.prototype.attachTo = function(self, elem)
 fan.fwt.WidgetPeer.prototype.attachEvents = function(self, evtId, elem, event, list)
 {
   var peer = this;
-  var func = function(e) { return peer.fireEvent(self, e, evtId, list, 1) }
+  var func = function(e) { return peer.fireEvent(self, e, evtId, list); }
+
+  // special handler for firefox
+  if (event == "mousewheel" && fan.fwt.DesktopPeer.$isFirefox) event = "DOMMouseScroll";
 
   if (elem.addEventListener)
     elem.addEventListener(event, func, false);
@@ -199,105 +207,67 @@ fan.fwt.WidgetPeer.prototype.attachEvents = function(self, evtId, elem, event, l
     elem.attachEvent("on"+event, func);
 }
 
-fan.fwt.WidgetPeer.prototype.attachDoubleClickEvent = function(self, elem)
+fan.fwt.WidgetPeer.prototype.attachKeyEvents = function(self, evtId, elem, event, list)
 {
   var peer = this;
   var func = function(e)
   {
-    var evt = peer.toEvent(self, e, fan.fwt.EventId.m_mouseDown, 2);
-    list = self.m_onMouseDown.list();
-    for (var i=0; i<list.size(); i++)
-    {
-      var meth = list.get(i);
-      meth.call(evt);
-    }
-    list = self.m_onMouseUp.list();
-    for (var i=0; i<list.size(); i++)
-    {
-      var meth = list.get(i);
-      meth.call(evt);
-    }
-    if (evt.m_consumed)
-    {
-      if (e.preventDefault) e.preventDefault();
-      e.returnValue = false; //  IE
-      return false;
-    }
+    return peer.fireEvent(self, e, evtId, list);
   }
 
   if (elem.addEventListener)
-    elem.addEventListener("dblclick", func, false);
+    elem.addEventListener(event, func, false);
   else
-    elem.attachEvent("ondblclick", func);
-
+    elem.attachEvent("on"+event, func);
 }
 
-fan.fwt.WidgetPeer.prototype.attachWheelEvent = function(self, elem, list)
-{
-  var peer = this;
-  var func = function(e)
-  {
-    var delta = 0;
-    if (!e) e = window.event; // IE
-    if (e.wheelDelta) delta = e.wheelDelta / 120; // IE, Opera, safari, chrome
-    else if (e.detail) delta = -e.detail / 3; // Mozilla
-    if (delta)
-    {
-      var count = delta > 0 ? Math.ceil(delta) : Math.floor(delta);
-      return peer.fireEvent(self, e, fan.fwt.EventId.m_mouseWheel, list, count, 1);
-    }
-  }
-
-  if (elem.addEventListener)
-  {
-    // mozilla
-    elem.addEventListener('DOMMouseScroll', func, false);
-    // safari, chrome
-    elem.addEventListener('mousewheel', func, false);
-  }
-  // IE, Opera.
-  else elem.attachEvent("onmousewheel", func);
-}
-
-fan.fwt.WidgetPeer.prototype.fireEvent = function(self, e, id, list, count, button)
+fan.fwt.WidgetPeer.prototype.fireEvent = function(self, e, id, list)
 {
   if (!e) e = window.event; // IE
-  var evt = this.toEvent(self, e, id, count, button);
+  var evt = this.toEvent(self, e, id);
   for (var i = 0; i < list.size(); i++)
   {
     var meth = list.get(i);
     meth.call(evt);
   }
+  // avoid bubbling
+  if (e.stopPropagation) e.stopPropagation();
+  e.cancelBubble = true;
+  // prevent default
   if (evt.m_consumed)
   {
     if (e.preventDefault) e.preventDefault();
     e.returnValue = false; //  IE
-    // avoid bubbling for compatibility
-	if (e.stopPropagation) e.stopPropagation();
-	e.cancelBubble = true;
     return false;
   }
 }
 
-fan.fwt.WidgetPeer.prototype.toEvent = function(self, e, id, count, button)
+fan.fwt.WidgetPeer.prototype.toEvent = function(self, e, evtId)
 {
+  // cache event type
+  var isClickEvent = evtId == fan.fwt.EventId.m_mouseDown ||
+                     evtId == fan.fwt.EventId.m_mouseUp;
+  var isWheelEvent = evtId == fan.fwt.EventId.m_mouseWheel;
+
+  // create fwt::Event and invoke handler
   var evt = fan.fwt.Event.make();
-  evt.m_id = id;
+  evt.m_id     = evtId;
+  evt.m_pos    = this.getMousePos(self, e);
   evt.m_widget = self;
-  evt.m_pos = this.getMousePos(self, e);
-  if (button === undefined)
+  evt.m_key    = fan.fwt.WidgetPeer.toKey(e);
+  if (e.charCode && e.charCode > 0) evt.m_keyChar = e.charCode;
+
+  if (isWheelEvent)
   {
-    if (e.currentTarget)  // FF
-    	button = e.button + 1;
-    else  // IE
-      button = e.button == 2 ? 3 : (e.button == 4 ? 2 : 1);
+    evt.m_button = 1;  // always set to middle button?
+    evt.m_count  = 0;
+    evt.m_delta  = fan.fwt.WidgetPeer.toWheelDelta(e);
   }
-  evt.m_button = button;
-  evt.m_count = count;
-  evt.m_key = fan.fwt.WidgetPeer.toKey(e);
-  if (e.keyCode != null && e.keyCode > 0)
+  else evt.m_count  = this.clicks.process(evt);
+  if (isClickEvent)
   {
-    evt.m_keyChar = e.keyCode;
+    evt.m_button = e.button + 1;
+    evt.m_delta  = null;
   }
   return evt;
 }
@@ -323,6 +293,40 @@ fan.fwt.WidgetPeer.prototype.getMousePos = function(self, e)
   return fan.gfx.Point.make(mx, my);
 }
 
+fan.fwt.WidgetPeer.toWheelDelta = function(e)
+{
+  var wx = 0;
+  var wy = 0;
+
+  if (e.wheelDeltaX != null)
+  {
+    // WebKit
+    wx = -e.wheelDeltaX;
+    wy = -e.wheelDeltaY;
+
+    // Safari
+    if (wx % 40 == 0) wx = wx / 40;
+    if (wy % 40 == 0) wy = wy / 40;
+  }
+  else if (e.wheelDelta != null)
+  {
+    // IE
+    wy = -e.wheelDelta;
+    if (wy % 40 == 0) wy = wy / 40;
+  }
+  else if (e.detail != null)
+  {
+    // Firefox
+    wx = e.axis == 1 ? e.detail : 0;
+    wy = e.axis == 2 ? e.detail : 0;
+  }
+
+  // make sure we have ints and return
+  wx = wx > 0 ? Math.ceil(wx) : Math.floor(wx);
+  wy = wy > 0 ? Math.ceil(wy) : Math.floor(wy);
+  return fan.gfx.Point.make(wx, wy);
+}
+
 fan.fwt.WidgetPeer.toKey = function(event)
 {
   // find primary key
@@ -343,6 +347,8 @@ fan.fwt.WidgetPeer.keyCodeToKey = function(keyCode)
   // TODO FIXIT: map rest of non-alpha keys
   switch (keyCode)
   {
+    case 35: return fan.fwt.Key.m_end;
+    case 36: return fan.fwt.Key.m_home;
     case 38: return fan.fwt.Key.m_up;
     case 40: return fan.fwt.Key.m_down;
     case 37: return fan.fwt.Key.m_left;
@@ -535,22 +541,38 @@ fan.fwt.WidgetPeer.setBg = function(elem, brush)
     return;
   }
 }
-/*
+
 fan.fwt.WidgetPeer.prototype.clicks =
 {
-  count : 0,
-  timerId : 0,
-  onClick : function(element)
+  // process mouse event and return number of clicks
+  process: function(evt)
   {
-    if (this.timerId > 0)
+    if (fan.fwt.EventId.m_mouseDown === evt.m_id)
     {
+      // increase number of clicks 
+      this.count++;
+      this.lastCount = this.count;
+      // set timeout to reset clicks after 600 ms
       clearTimeout(this.timerId);
-      timerId = 0;
+      var t = this;
+      this.timerId = setTimeout(function() { t.count = 0 }, 600);
+      return this.count;
     }
-    this.count++;
-    var t = this;
-    var f = function() { t.count = 0; }
-    this.timerId = setTimeout(f);
-  }
+    // return last click count when mouse up
+    else if (fan.fwt.EventId.m_mouseUp === evt.m_id) return this.lastCount;
+    else
+    {
+      // reset clicks if mouse position was changed
+      if (!fan.sys.ObjUtil.equals(evt.m_pos, this.mousePos))
+      {
+        this.count = 0;
+        this.mousePos = evt.m_pos;
+      }
+    }
+    return 0
+  },
+  count : 0,      // number of clicks
+  lastCount : 0,  // the last positive number of clicks
+  timerId : 0,    // id of reset timer
+  mousePos : null // the last mouse position
 }
-*/
