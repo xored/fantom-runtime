@@ -229,6 +229,7 @@ fan.fwt.WidgetPeer.prototype.fireEvent = function(self, e, id, list)
   {
     var meth = list.get(i);
     meth.call(evt);
+    if (evt.m_consumed) break;
   }
   // avoid bubbling
   if (e.stopPropagation) e.stopPropagation();
@@ -347,12 +348,20 @@ fan.fwt.WidgetPeer.keyCodeToKey = function(keyCode)
   // TODO FIXIT: map rest of non-alpha keys
   switch (keyCode)
   {
+    // modifiers will be handled separately
+    case 16: return null;
+    case 17: return null;
+    case 18: return null;
+    // keys
+    case 32: return fan.fwt.Key.m_space;
+    case 33: return fan.fwt.Key.m_pageUp;
+    case 34: return fan.fwt.Key.m_pageDown;
     case 35: return fan.fwt.Key.m_end;
     case 36: return fan.fwt.Key.m_home;
-    case 38: return fan.fwt.Key.m_up;
-    case 40: return fan.fwt.Key.m_down;
     case 37: return fan.fwt.Key.m_left;
+    case 38: return fan.fwt.Key.m_up;
     case 39: return fan.fwt.Key.m_right;
+    case 40: return fan.fwt.Key.m_down;
     default: return fan.fwt.Key.fromMask(keyCode);
   }
 }
