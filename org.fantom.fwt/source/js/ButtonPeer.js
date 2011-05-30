@@ -243,6 +243,7 @@ fan.fwt.ButtonPeer.prototype.sync = function(self)
     // set state
     var check = this.elem.firstChild;
     check.checked = this.m_selected;
+    check.disabled = !this.m_enabled;
 
     // set text
     while (div.childNodes.length > 1) div.removeChild(div.lastChild);
