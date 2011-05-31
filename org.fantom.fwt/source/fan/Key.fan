@@ -273,8 +273,8 @@ const class Key
   Key modifiers()
   {
     key := none
-    if (isAlt)     key += alt 
-    if (isShift)   key += shift 
+    if (isAlt)     key += alt
+    if (isShift)   key += shift
     if (isCtrl)    key += ctrl
     if (isCommand) key += command
     return key
