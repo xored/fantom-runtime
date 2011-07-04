@@ -63,8 +63,24 @@ fan.fwt.WidgetPeer.prototype.posOnWindow = function(self)
 
 fan.fwt.WidgetPeer.prototype.posOnDisplay = function(self)
 {
-  //equals to posOnWindow for now
-  return this.posOnWindow(self);
+  // find pos relative to window
+  var pos = this.posOnWindow(self);
+  var win = self.window();
+  if (win != null && win.peer.root != null)
+  {
+    // find position of window relative to display
+    var elem = win.peer.root;
+    var x = 0, y = 0;
+    do
+    {
+      x += elem.offsetLeft - elem.scrollLeft;
+      y += elem.offsetTop - elem.scrollTop;
+    }
+    while(elem = elem.offsetParent);
+    if (x != 0 || y != 0)
+      return fan.gfx.Point.make(pos.m_x + x, pos.m_y + y);
+  }
+  return pos;
 }
 
 fan.fwt.WidgetPeer.prototype.prefSize = function(self, hints)
@@ -230,13 +246,13 @@ fan.fwt.WidgetPeer.prototype.detach = function(self)
 fan.fwt.WidgetPeer.prototype.sync = function(self, w, h)  // w,h override
 {
   // sync event handlers
-  this.checkEventListener(self, 0x01, "mouseover",  fan.fwt.EventId.m_mouseEnter, self.m_onMouseEnter);
-  this.checkEventListener(self, 0x02, "mouseout",   fan.fwt.EventId.m_mouseExit,  self.m_onMouseExit);
-  this.checkEventListener(self, 0x04, "mousedown",  fan.fwt.EventId.m_mouseDown,  self.m_onMouseDown);
-  this.checkEventListener(self, 0x08, "mousemove",  fan.fwt.EventId.m_mouseMove,  self.m_onMouseMove);
-  this.checkEventListener(self, 0x10, "mouseup",    fan.fwt.EventId.m_mouseUp,    self.m_onMouseUp);
-//this.checkEventListener(self, 0x20, "mousehover", fan.fwt.EventId.m_mouseHover, self.m_onMouseHover);
-  this.checkEventListener(self, 0x40, "mousewheel", fan.fwt.EventId.m_mouseWheel, self.m_onMouseWheel);
+  this.checkEventListener(self, 0x01, "mouseover",  fan.fwt.EventId.m_mouseEnter, self.onMouseEnter());
+  this.checkEventListener(self, 0x02, "mouseout",   fan.fwt.EventId.m_mouseExit,  self.onMouseExit());
+  this.checkEventListener(self, 0x04, "mousedown",  fan.fwt.EventId.m_mouseDown,  self.onMouseDown());
+  this.checkEventListener(self, 0x08, "mousemove",  fan.fwt.EventId.m_mouseMove,  self.onMouseMove());
+  this.checkEventListener(self, 0x10, "mouseup",    fan.fwt.EventId.m_mouseUp,    self.onMouseUp());
+//this.checkEventListener(self, 0x20, "mousehover", fan.fwt.EventId.m_mouseHover, self.onMouseHover());
+  this.checkEventListener(self, 0x40, "mousewheel", fan.fwt.EventId.m_mouseWheel, self.onMouseWheel());
 
   // sync bounds
   with (this.elem.style)
@@ -276,18 +292,10 @@ fan.fwt.WidgetPeer.prototype.attachEventListener = function(self, type, evtId, l
   var peer = this;
   var func = function(e)
   {
-    // find pos relative to widget
-    var dis  = peer.posOnWindow(self);
+    // find pos relative to display
+    var dis  = peer.posOnDisplay(self);
     var mx   = e.clientX - dis.m_x;
     var my   = e.clientY - dis.m_y;
-
-    // make sure to rel against window root
-    var win = self.window();
-    if (win != null && win.peer.root != null)
-    {
-      mx -= win.peer.root.offsetLeft;
-      my -= win.peer.root.offsetTop;
-    }
 
     // cache event type
     var isClickEvent = evtId == fan.fwt.EventId.m_mouseDown ||
@@ -512,25 +520,17 @@ fan.fwt.WidgetPeer.setBg = function(elem, brush)
       var color = stop.m_color.toCss();
 
       // set background to first stop for fallback if gradeints not supported
-      if (i == 0) background = color;
+      if (i == 0) style.background = color;
 
       std    += "," + color + " " + (stop.m_pos * 100) + "%";
       webkit += ",color-stop(" + stop.m_pos + ", " + color + ")";
     }
 
     // apply styles
-    // IE throws here, so trap and use filter in catch
-    try
-    {
-      style.background = "linear-gradient(" + std + ")";
-      style.background = "-moz-linear-gradient(" + std + ")";
-      style.background = "-webkit-gradient(linear, " + webkit + ")";
-    }
-    catch (err)
-    {
-      //filter = "progid:DXImageTransform.Microsoft.Gradient(" +
-      //  "StartColorStr=" + c1 + ", EndColorStr=" + c2 + ")";
-    }
+    style.background = "-ms-linear-gradient(" + std + ")";
+    style.background = "-moz-linear-gradient(" + std + ")";
+    style.background = "-webkit-gradient(linear, " + webkit + ")";
+    style.background = "linear-gradient(" + std + ")";
 
     return;
   }

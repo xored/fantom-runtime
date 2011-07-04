@@ -92,7 +92,7 @@ fan.fwt.ButtonPeer.prototype.makePush = function(parentElem, self)
     evt.m_id = fan.fwt.EventId.m_action;
     evt.m_widget = self;
 
-    var list = self.m_onAction.list();
+    var list = self.onAction().list();
     for (var i=0; i<list.size(); i++) list.get(i).call(evt);
 
     $this.m_pressed = false;
@@ -127,7 +127,7 @@ fan.fwt.ButtonPeer.prototype.makeCheck = function(parentElem, self)
     evt.m_id = fan.fwt.EventId.m_action;
     evt.m_widget = self;
 
-    var list = self.m_onAction.list();
+    var list = self.onAction().list();
     for (var i=0; i<list.size(); i++) list.get(i).call(evt);
   }
 
@@ -242,7 +242,7 @@ fan.fwt.ButtonPeer.prototype.sync = function(self)
 
     // set state
     var check = this.elem.firstChild;
-    check.checked = this.m_selected;
+    check.checked  = this.m_selected;
     check.disabled = !this.m_enabled;
 
     // set text
