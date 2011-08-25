@@ -32,12 +32,12 @@ public class EquinoxEnv extends Env
     final Pod pod = pods.get(name);
     if (pod == null)
     {
-      throw UnknownPodErr.make(name).val;
+      throw UnknownPodErr.make(name);
     }
     final File file = pod.toFile();
     if (file == null)
     {
-      throw UnresolvedErr.make("Pod file not found " + name).val;
+      throw UnresolvedErr.make("Pod file not found " + name);
     }
     return new BundleFile(file);
   }

@@ -200,6 +200,7 @@ fan.fwt.WidgetPeer.prototype.attachTo = function(self, elem)
 }
 
 fan.fwt.WidgetPeer.prototype.checkKeyListeners = function(self) {}
+fan.fwt.WidgetPeer.prototype.checkFocusListeners = function(self) {}
 
 fan.fwt.WidgetPeer.prototype.create = function(parentElem, self)
 {
@@ -246,13 +247,17 @@ fan.fwt.WidgetPeer.prototype.detach = function(self)
 fan.fwt.WidgetPeer.prototype.sync = function(self, w, h)  // w,h override
 {
   // sync event handlers
-  this.checkEventListener(self, 0x01, "mouseover",  fan.fwt.EventId.m_mouseEnter, self.onMouseEnter());
-  this.checkEventListener(self, 0x02, "mouseout",   fan.fwt.EventId.m_mouseExit,  self.onMouseExit());
-  this.checkEventListener(self, 0x04, "mousedown",  fan.fwt.EventId.m_mouseDown,  self.onMouseDown());
-  this.checkEventListener(self, 0x08, "mousemove",  fan.fwt.EventId.m_mouseMove,  self.onMouseMove());
-  this.checkEventListener(self, 0x10, "mouseup",    fan.fwt.EventId.m_mouseUp,    self.onMouseUp());
-//this.checkEventListener(self, 0x20, "mousehover", fan.fwt.EventId.m_mouseHover, self.onMouseHover());
-  this.checkEventListener(self, 0x40, "mousewheel", fan.fwt.EventId.m_mouseWheel, self.onMouseWheel());
+  this.checkEventListener(self, 0x001, "mouseover",  fan.fwt.EventId.m_mouseEnter, self.onMouseEnter());
+  this.checkEventListener(self, 0x002, "mouseout",   fan.fwt.EventId.m_mouseExit,  self.onMouseExit());
+  this.checkEventListener(self, 0x004, "mousedown",  fan.fwt.EventId.m_mouseDown,  self.onMouseDown());
+  this.checkEventListener(self, 0x008, "mousemove",  fan.fwt.EventId.m_mouseMove,  self.onMouseMove());
+  this.checkEventListener(self, 0x010, "mouseup",    fan.fwt.EventId.m_mouseUp,    self.onMouseUp());
+//this.checkEventListener(self, 0x020, "mousehover", fan.fwt.EventId.m_mouseHover, self.onMouseHover());
+  this.checkEventListener(self, 0x040, "mousewheel", fan.fwt.EventId.m_mouseWheel, self.onMouseWheel());
+  this.checkEventListener(self, 0x080, "keydown",    fan.fwt.EventId.m_keyDown,    self.onKeyDown());
+  this.checkEventListener(self, 0x100, "keyup",      fan.fwt.EventId.m_keyUp,      self.onKeyUp());
+  this.checkEventListener(self, 0x200, "blur",       fan.fwt.EventId.m_blur,       self.onBlur());
+  this.checkEventListener(self, 0x400, "focus",      fan.fwt.EventId.m_focus,      self.onFocus());
 
   // sync bounds
   with (this.elem.style)
@@ -301,6 +306,7 @@ fan.fwt.WidgetPeer.prototype.attachEventListener = function(self, type, evtId, l
     var isClickEvent = evtId == fan.fwt.EventId.m_mouseDown ||
                        evtId == fan.fwt.EventId.m_mouseUp;
     var isWheelEvent = evtId == fan.fwt.EventId.m_mouseWheel;
+    var isMouseEvent = type.indexOf("mouse") != -1;
 
     // create fwt::Event and invoke handler
     var evt = fan.fwt.Event.make();
@@ -328,17 +334,16 @@ fan.fwt.WidgetPeer.prototype.attachEventListener = function(self, type, evtId, l
     }
 
     // prevent bubbling
-    e.stopPropagation();
-    if (evt.m_consumed)
-    {
-      if (e.preventDefault) e.preventDefault();
-      e.returnValue = false; //  IE
-      return false;
-    }
+    if (evt.m_consumed || isMouseEvent) e.stopPropagation();
+    if (evt.m_consumed) e.preventDefault();
+    return false;
   }
 
   // special handler for firefox
   if (type == "mousewheel" && fan.fwt.DesktopPeer.$isFirefox) type = "DOMMouseScroll";
+
+  // add tabindex for key events
+  if (type == "keydown" || type == "keyup") this.elem.tabIndex = 0;
 
   // attach event handler
   this.elem.addEventListener(type, func, false);
@@ -420,7 +425,12 @@ fan.fwt.WidgetPeer.toKey = function(event)
   // find primary key
   var key = null;
   if (event.keyCode != null && event.keyCode > 0)
-    key = fan.fwt.WidgetPeer.keyCodeToKey(event.keyCode);
+  {
+    // force alpha keys to lowercase so we map correctly
+    var code = event.keyCode;
+    if (code >= 65 && code <= 90) code += 32;
+    key = fan.fwt.WidgetPeer.keyCodeToKey(code);
+  }
 
   if (event.shiftKey)   key = key==null ? fan.fwt.Key.m_shift : key.plus(fan.fwt.Key.m_shift);
   if (event.altKey)     key = key==null ? fan.fwt.Key.m_alt   : key.plus(fan.fwt.Key.m_alt);
@@ -435,10 +445,14 @@ fan.fwt.WidgetPeer.keyCodeToKey = function(keyCode)
   // TODO FIXIT: map rest of non-alpha keys
   switch (keyCode)
   {
-    case 38: return fan.fwt.Key.m_up;
-    case 40: return fan.fwt.Key.m_down;
+    case 8:  return fan.fwt.Key.m_backspace;
+    case 13: return fan.fwt.Key.m_enter;
+    case 32: return fan.fwt.Key.m_space;
     case 37: return fan.fwt.Key.m_left;
+    case 38: return fan.fwt.Key.m_up;
     case 39: return fan.fwt.Key.m_right;
+    case 40: return fan.fwt.Key.m_down;
+    case 46: return fan.fwt.Key.m_$delete;
     default: return fan.fwt.Key.fromMask(keyCode);
   }
 }
@@ -487,6 +501,9 @@ fan.fwt.WidgetPeer.addCss = function(css)
   else style.appendChild(document.createTextNode(css));
   document.getElementsByTagName("head")[0].appendChild(style);
 }
+
+// disable focus outlines on div.tabIndex elements
+fan.fwt.WidgetPeer.addCss("div:focus { outline:0; }");
 
 fan.fwt.WidgetPeer.setBg = function(elem, brush)
 {
@@ -555,6 +572,46 @@ fan.fwt.WidgetPeer.setBg = function(elem, brush)
     // set style
     style.background = str;
     return;
+  }
+}
+
+fan.fwt.WidgetPeer.setBorder = function(elem, border)
+{
+  var s = elem.style;
+  var b = border;
+  if (b == null) { s.border = "none"; return; }
+  s.borderStyle = "solid";
+
+  s.borderTopWidth    = b.m_widthTop    + "px";
+  s.borderRightWidth  = b.m_widthRight  + "px";
+  s.borderBottomWidth = b.m_widthBottom + "px";
+  s.borderLeftWidth   = b.m_widthLeft   + "px";
+
+  s.borderTopColor    = b.m_colorTop.toCss();
+  s.borderRightColor  = b.m_colorRight.toCss();
+  s.borderBottomColor = b.m_colorBottom.toCss();
+  s.borderLeftColor   = b.m_colorLeft.toCss();
+
+  if (s.borderRadius != undefined)
+  {
+    s.borderTopLeftRadius     = b.m_radiusTopLeft + "px";
+    s.borderTopRightRadius    = b.m_radiusTopRight + "px";
+    s.borderBottomRightRadius = b.m_radiusBottomRight + "px";
+    s.borderBottomLeftRadius  = b.m_radiusBottomLeft + "px";
+  }
+  else if (s.style.MozBorderRadius != undefined)
+  {
+    s.MozBorderRadiusTopleft     = b.m_radiusTopLeft + "px";
+    s.MozBorderRadiusTopright    = b.m_radiusTopRight + "px";
+    s.MozBorderRadiusBottomright = b.m_radiusBottomRight + "px";
+    s.MozBorderRadiusBottomleft  = b.m_radiusBottomLeft + "px";
+  }
+  else if (s.webkitBorderRadius != undefined)
+  {
+    s.webkitBorderTopLeftRadius     = b.m_radiusTopLeft + "px";
+    s.webkitBorderTopRightRadius    = b.m_radiusTopRight + "px";
+    s.webkitBorderBottomRightRadius = b.m_radiusBottomRight + "px";
+    s.webkitBorderBottomLeftRadius  = b.m_radiusBottomLeft + "px";
   }
 }
 

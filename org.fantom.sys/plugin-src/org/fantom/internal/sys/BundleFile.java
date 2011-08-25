@@ -5,7 +5,6 @@ import fan.sys.File;
 import fan.sys.IOErr;
 import fan.sys.LocalFile;
 import fan.sys.OutStream;
-import fan.sys.Err.Val;
 
 public class BundleFile extends LocalFile {
 
@@ -13,8 +12,8 @@ public class BundleFile extends LocalFile {
 		super(javaFile);
 	}
 
-	private static Val readOnlyError() {
-		throw IOErr.make("BundleFile is readonly").val;
+	private static IOErr readOnlyError() {
+		throw IOErr.make("BundleFile is readonly");
 	}
 
 	@Override

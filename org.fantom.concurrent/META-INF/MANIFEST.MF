@@ -2,5 +2,5 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Concurrent
 Bundle-SymbolicName: org.fantom.concurrent;singleton:=true
-Bundle-Version: 1.0.58.qualifier
-Require-Bundle: org.fantom.sys;bundle-version="1.0.58"
+Bundle-Version: 1.0.59.qualifier
+Require-Bundle: org.fantom.sys;bundle-version="1.0.59"

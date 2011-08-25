@@ -10,10 +10,26 @@
  * DialogPeer.
  */
 fan.fwt.DialogPeer = fan.sys.Obj.$extend(fan.fwt.WindowPeer);
-fan.fwt.DialogPeer.prototype.$ctor = function(self) {}
+fan.fwt.DialogPeer.prototype.$ctor = function(self)
+{
+  this.hasKeyBinding = false;
+}
 
 fan.fwt.DialogPeer.prototype.open = function(self)
 {
+  // attach event handlers
+  if (!this.hasKeyBinding)
+  {
+    this.hasKeyBinding = true;
+    self.onKeyDown().add(fan.sys.Func.make(
+      fan.sys.List.make(fan.sys.Param.$type, [new fan.sys.Param("it","fwt::Event",false)]),
+      fan.sys.Void.$type,
+      function(it)
+      {
+        if (it.m_key == fan.fwt.Key.m_esc) { self.close(null); it.consume(); }
+      }));
+  }
+
   // mount mask that functions as input blocker for modality
   var mask = document.createElement("div")
   with (mask.style)
@@ -93,20 +109,19 @@ fan.fwt.DialogPeer.prototype.open = function(self)
   // cache elements so we can remove when we close
   this.$mask = mask;
   this.$shell = shell;
+  this.$focus = document.activeElement;
 
-  // animate open
+  // animate open and dialog resizes
   mask.style.opacity = "0.25";
-  dlg.style.MozTransition    = "-moz-transform 100ms, opacity 100ms";
+  var tx = "-transform 100ms, opacity 100ms, top 250ms, left 250ms, width 250ms, height 250ms";
+  dlg.style.MozTransition    = "-moz" + tx;
   dlg.style.MozTransform     = "scale(1.0)";
-  dlg.style.webkitTransition = "-webkit-transform 100ms, opacity 100ms";
+  dlg.style.webkitTransition = "-webkit" + tx;
   dlg.style.webkitTransform  = "scale(1.0)";
   dlg.style.opacity = "1.0";
 
-  // attach transition for dialog resizes
-  dlg.style.MozTransition    = "top 250ms, left 250ms, width 250ms, height 250ms";
-  dlg.style.webkitTransition = "top 250ms, left 250ms, width 250ms, height 250ms";
-
   // try to focus first form element
+  self.focus();
   var elem = fan.fwt.DialogPeer.findFormControl(content);
   if (elem != null)
   {
@@ -172,11 +187,13 @@ fan.fwt.DialogPeer.prototype.close = function(self, result)
     if ($this.$shell) $this.$shell.parentNode.removeChild($this.$shell);
     if ($this.$mask) $this.$mask.parentNode.removeChild($this.$mask);
     fan.fwt.WindowPeer.prototype.close.call($this, self, result);
+    if ($this.$focus != null) $this.$focus.focus();
   }, 100);
 }
 
 fan.fwt.DialogPeer.$isCommit = function(result)
 {
+  if (result == null) return false;
   var id = result.m_id;
   if (id == fan.fwt.DialogCommandId.m_ok)  return true;
   if (id == fan.fwt.DialogCommandId.m_yes) return true;

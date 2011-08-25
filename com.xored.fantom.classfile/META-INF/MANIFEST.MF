@@ -3,4 +3,4 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Classfile
 Bundle-SymbolicName: com.xored.fantom.classfile;singleton:=true
 Bundle-Version: 1.0.0.qualifier
-Require-Bundle: org.fantom.sys;bundle-version="1.0.58"
+Require-Bundle: org.fantom.sys;bundle-version="1.0.59"

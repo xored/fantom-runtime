@@ -30,18 +30,17 @@ public class FantomInstall implements IFantomInstall
         return type.make();
       }
     }
-    catch (Err.Val e)
+    catch (Err err)
     {
-      Err err = e.err();
       while (err.cause() != null)
       {
         err = err.cause();
       }
-      if (err.toJava() != e)
+      if (err.toJava() != err)
       {
         throw new FantomException(err.toJava());
       }
-      throw new FantomException(e);
+      throw new FantomException(err);
     }
     catch (RuntimeException e)
     {
