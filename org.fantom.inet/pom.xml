@@ -9,6 +9,6 @@
   </parent>
   <groupId>org.fantom</groupId>
   <artifactId>org.fantom.inet</artifactId>
-  <version>1.0.59-SNAPSHOT</version>
+  <version>1.0.60-SNAPSHOT</version>
   <packaging>eclipse-plugin</packaging>
 </project>

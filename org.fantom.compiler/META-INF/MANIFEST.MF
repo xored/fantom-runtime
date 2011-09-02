@@ -2,5 +2,5 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Compiler
 Bundle-SymbolicName: org.fantom.compiler;singleton:=true
-Bundle-Version: 1.0.59.qualifier
-Require-Bundle: org.fantom.sys;bundle-version="1.0.59"
+Bundle-Version: 1.0.60.qualifier
+Require-Bundle: org.fantom.sys;bundle-version="1.0.60"

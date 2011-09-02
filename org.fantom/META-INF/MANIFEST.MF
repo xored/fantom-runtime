@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Fantom
 Bundle-SymbolicName: org.fantom;singleton:=true
-Bundle-Version: 1.0.59.qualifier
+Bundle-Version: 1.0.60.qualifier
 Bundle-Activator: org.fantom.FantomVM
 Require-Bundle: org.eclipse.core.runtime
 Bundle-Localization: plugin

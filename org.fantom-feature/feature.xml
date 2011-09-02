@@ -2,7 +2,7 @@
 <feature
       id="org.fantom"
       label="Fantom Runtime"
-      version="1.0.59.qualifier">
+      version="1.0.60.qualifier">
 
    <description url="http://www.example.com/description">
       [Enter Feature Description here.]

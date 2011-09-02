@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Gfx pod
 Bundle-SymbolicName: org.fantom.gfx;singleton:=true
-Bundle-Version: 1.0.59.qualifier
+Bundle-Version: 1.0.60.qualifier
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
-Require-Bundle: org.fantom.sys;bundle-version="1.0.59",
- org.fantom.concurrent;bundle-version="1.0.59"
+Require-Bundle: org.fantom.sys;bundle-version="1.0.60",
+ org.fantom.concurrent;bundle-version="1.0.60"

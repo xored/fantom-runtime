@@ -77,6 +77,8 @@ public abstract class Env
 
   public OutStream err() { return parent.err(); }
 
+  public String promptPassword() { return this.promptPassword(""); }
+  public String promptPassword(String msg) { return parent.promptPassword(msg); }
   public File homeDir() { return parent.homeDir(); }
 
   public File workDir() { return parent.workDir(); }
@@ -94,15 +96,12 @@ public abstract class Env
 // Resolution
 //////////////////////////////////////////////////////////////////////////
 
-  public final File findFile(String uri) { return findFile(Uri.fromStr(uri), true); }
-  public final File findFile(String uri, boolean checked) { return findFile(Uri.fromStr(uri), checked); }
   public File findFile(Uri uri) { return findFile(uri, true); }
   public File findFile(Uri uri, boolean checked)
   {
     return parent.findFile(uri, checked);
   }
 
-  public final List findAllFiles(String uri) { return findAllFiles(Uri.fromStr(uri)); }
   public List findAllFiles(Uri uri)
   {
     return parent.findAllFiles(uri);

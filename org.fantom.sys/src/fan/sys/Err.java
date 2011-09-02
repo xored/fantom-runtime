@@ -120,6 +120,7 @@ public class Err
 
   public Type typeof() { return Sys.ErrType; }
 
+  public final String toString() { return toStr(); }
   public String toStr()
   {
     // wrap with try block to safely handle boot-strap problems

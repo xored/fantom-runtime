@@ -2,8 +2,8 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Wisp web Server
 Bundle-SymbolicName: org.fantom.wisp;singleton:=true
-Bundle-Version: 1.0.59.qualifier
-Require-Bundle: org.fantom.sys;bundle-version="1.0.59",
- org.fantom.concurrent;bundle-version="1.0.59",
- org.fantom.inet;bundle-version="1.0.59",
- org.fantom.web;bundle-version="1.0.59"
+Bundle-Version: 1.0.60.qualifier
+Require-Bundle: org.fantom.sys;bundle-version="1.0.60",
+ org.fantom.concurrent;bundle-version="1.0.60",
+ org.fantom.inet;bundle-version="1.0.60",
+ org.fantom.web;bundle-version="1.0.60"
