@@ -207,7 +207,7 @@ public class Pod
 // Constructor
 //////////////////////////////////////////////////////////////////////////
 
-  Pod(FPod fpod)
+  public Pod(FPod fpod)
   {
     this.name = fpod.podName;
     this.classLoader = new FanClassLoader(this);
