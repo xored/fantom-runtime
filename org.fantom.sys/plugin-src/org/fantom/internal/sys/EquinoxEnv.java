@@ -16,6 +16,8 @@ public class EquinoxEnv extends Env
 {
 
   private final Map<String, Pod> pods = new HashMap<String, Pod>();
+  
+  private final Map<String, fan.sys.File> jstub = new HashMap<String, fan.sys.File>();
 
   public EquinoxEnv()
   {
@@ -29,6 +31,10 @@ public class EquinoxEnv extends Env
   @Override
   public fan.sys.File findPodFile(String name)
   {
+    if( jstub != null && jstub.containsKey(name)) {
+      return jstub.get(name);
+    }
+    
     final Pod pod = pods.get(name);
     if (pod == null)
     {
@@ -71,5 +77,12 @@ public class EquinoxEnv extends Env
   public Class loadJavaClass(String className, String loadingPod) throws Exception
   {
     return getJavaClassLoader(loadingPod).loadClass(className);
+  }
+  
+  public void addJStubPod(String name, fan.sys.File pod) {
+    jstub.put(name, pod);
+  }
+  public void removeJStubPod() {
+    jstub.clear();
   }
 }

@@ -505,6 +505,20 @@ public class Pod
     // lost cause
     throw UnknownTypeErr.make(podName + "::" + typeName);
   }
+  public static HashMap storePodsCache()
+  {
+    synchronized(podsByName) {
+      HashMap copy = new HashMap(podsByName);
+      return copy;
+    }
+  }
+  public static void restorePodsCache(HashMap copy)
+  {
+    synchronized(podsByName) {
+      podsByName.clear();
+      podsByName.putAll(copy);
+    }
+  }
 
 //////////////////////////////////////////////////////////////////////////
 // Fields
