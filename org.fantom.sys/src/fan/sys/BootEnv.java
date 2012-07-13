@@ -273,7 +273,7 @@ public class BootEnv
     }
   }
 
-  public Class loadJavaClass(String className)
+  public Class loadJavaClass(String className, String callingPod)
     throws Exception
   {
     // handle primitives, these don't get handled by URLClassLoader
@@ -292,8 +292,16 @@ public class BootEnv
     }
 
     // route to extention classloader
-    return FanClassLoader.extClassLoader.loadClass(className);
+    return getJavaClassLoader(callingPod).loadClass(className);
   }
+  
+  
+  @Override
+  public ClassLoader getJavaClassLoader(String pod)
+  {
+    return FanClassLoader.extClassLoader;
+  }
+  
 
 //////////////////////////////////////////////////////////////////////////
 // Fields

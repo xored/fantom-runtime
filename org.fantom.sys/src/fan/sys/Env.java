@@ -210,11 +210,16 @@ public abstract class Env
    * Load the Java class of a FFI JavaType.
    * Default implementation delegates to parent.
    */
-  public Class loadJavaClass(String className)
-    throws Exception
-  {
-    return parent.loadJavaClass(className);
-  }
+  public Class loadJavaClass(String className, String callingPod)
+      throws Exception
+    {
+      return parent.loadJavaClass(className, callingPod);
+    }
+
+    public ClassLoader getJavaClassLoader(String callingPod) 
+    {
+      return parent.getJavaClassLoader(callingPod);
+    }
 
   /**
    * Given a Java class, get its FFI JavaType mapping.  This
