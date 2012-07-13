@@ -173,6 +173,7 @@ public class Process
     proc.destroy();
     return this;
   }
+
   private void checkRun()
   {
     if (proc != null) throw Err.make("Process already run");
@@ -192,6 +193,7 @@ public class Process
       return true;
     }
   }
+
 //////////////////////////////////////////////////////////////////////////
 // PipeInToOut
 //////////////////////////////////////////////////////////////////////////
@@ -202,7 +204,7 @@ public class Process
     {
       super("Process." +  name);
       this.proc = proc;
-      this.in = in;
+      this.in   = in;
       this.out  = out == null ? null : SysOutStream.java(out);
     }
 
@@ -220,6 +222,7 @@ public class Process
         catch (Throwable e)
         {
           if (proc.isAlive()) e.printStackTrace();
+          else return;
         }
       }
     }
@@ -258,6 +261,7 @@ public class Process
         catch (Throwable e)
         {
           if (proc.isAlive()) e.printStackTrace();
+          else return;
         }
       }
     }

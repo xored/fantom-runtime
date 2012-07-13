@@ -29,6 +29,7 @@ public class Fan
 
     // check for pods pending installation
     checkInstall();
+
     // first try as file name
     File file = new File(target);
     if (file.exists() && target.toLowerCase().endsWith(".fan") && !file.isDirectory())
@@ -75,32 +76,8 @@ public class Fan
   private int executeFile(File file, String[] args)
     throws Exception
   {
-    LocalFile f = (LocalFile)(new LocalFile(file).normalize());
-
-    // options
-    Map options = new Map(Sys.StrType, Sys.ObjType);
-    for (int i=0; i<args.length; ++i)
-      if (args[i].equals("-fcodeDump")) options.add("fcodeDump", Boolean.TRUE);
-
-    // use Fantom reflection to run compiler::Main.compileScript(File)
-    Pod pod = null;
-    try
-    {
-      pod = Env.cur().compileScript(f, options).pod();
-    }
-    catch (Err e)
-    {
-      System.out.println("ERROR: cannot compile script");
-      if (!e.getClass().getName().startsWith("fan.compiler"))
-        e.trace();
-      return -1;
-    }
-    catch (Exception e)
-    {
-      System.out.println("ERROR: cannot compile script");
-      e.printStackTrace();
-      return -1;
-    }
+    Pod pod = compileScript(file, args);
+    if (pod == null) return -1;
 
     List types = pod.types();
     Type type = null;
@@ -121,7 +98,35 @@ public class Fan
     return callMain(type, main);
   }
 
-  public int executeType(String target, String[] args)
+  static Pod compileScript(File file, String[] args)
+  {
+    LocalFile f = (LocalFile)(new LocalFile(file).normalize());
+
+    Map options = new Map(Sys.StrType, Sys.ObjType);
+    for (int i=0; args != null && i<args.length; ++i)
+      if (args[i].equals("-fcodeDump")) options.add("fcodeDump", Boolean.TRUE);
+
+    try
+    {
+      // use Fantom reflection to run compiler::Main.compileScript(File)
+      return Env.cur().compileScript(f, options).pod();
+    }
+    catch (Err e)
+    {
+      System.out.println("ERROR: cannot compile script");
+      if (!e.getClass().getName().startsWith("fan.compiler"))
+        e.trace();
+      return null;
+    }
+    catch (Exception e)
+    {
+      System.out.println("ERROR: cannot compile script");
+      e.printStackTrace();
+      return null;
+    }
+  }
+
+  private int executeType(String target, String[] args)
     throws Exception
   {
     if (target.indexOf("::") < 0) target += "::Main.main";
@@ -203,7 +208,7 @@ public class Fan
   static void version(String progName)
   {
     println(progName);
-    println("Copyright (c) 2006-2011, Brian Frank and Andy Frank");
+    println("Copyright (c) 2006-2012, Brian Frank and Andy Frank");
     println("Licensed under the Academic Free License version 3.0");
     println("");
     println("Java Runtime:");
@@ -216,8 +221,18 @@ public class Fan
     println("  fan.version:     " + Sys.sysPod.version());
     println("  fan.env:         " + Env.cur());
     println("  fan.home:        " + Env.cur().homeDir().osPath());
-    println("");
+
+    String[] path = Env.cur().toDebugPath();
+    if (path != null)
+    {
+      println("");
+      println("Env Path:");
+      for (int i=0; i<path.length; ++i)
+      println("  " + path[i]);
+      println("");
+    }
   }
+
 
   static void pods(String progName)
   {

@@ -91,6 +91,14 @@ public final class Map
     return map.containsKey(key) ? null : def;
   }
 
+  public final Object getOrThrow(Object key)
+  {
+    Object val = map.get(key);
+    if (val != null) return val;
+    if (map.containsKey(key)) return null;
+    throw UnknownKeyErr.make(String.valueOf(key));
+  }
+
   public final boolean containsKey(Object key)
   {
     return map.containsKey(key);
@@ -369,6 +377,8 @@ public final class Map
   public final Map findAll(Func f)
   {
     Map acc = new Map(type);
+    if (this.ordered()) acc.ordered(true);
+    if (this.caseInsensitive()) acc.caseInsensitive(true);
     Iterator it = pairsIterator();
     while (it.hasNext())
     {
@@ -384,6 +394,8 @@ public final class Map
   public final Map exclude(Func f)
   {
     Map acc = new Map(type);
+    if (this.ordered()) acc.ordered(true);
+    if (this.caseInsensitive()) acc.caseInsensitive(true);
     Iterator it = pairsIterator();
     while (it.hasNext())
     {
