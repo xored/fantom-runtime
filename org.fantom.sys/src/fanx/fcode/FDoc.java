@@ -28,7 +28,7 @@ public class FDoc
 
   public void read()
     throws IOException
-    {
+  {
     consume();
     // == <type>
     if (!cur.startsWith("== ")) throw new IOException("Unexpected type line: " + cur);
@@ -36,7 +36,7 @@ public class FDoc
 
     // -- <slot> sections
     while (cur != null)
-      {
+    {
       // <slot>      :=  (<fieldSig> | <methodSig>) <attrs>
       // <fieldSig>  :=  "-- " <name> <sp> <type> [":=" <expr>] <nl>
       // <methodSig> :=  "-- " <name> "(" <nl> [<param> <nl>]* ")" <sp> <return> <nl>
@@ -47,8 +47,8 @@ public class FDoc
       String slotDoc = readAttrsToDoc();
       Slot slot = type.slot(slotName, false);
       if (slot != null) slot.doc = slotDoc;
-      }
-      }
+    }
+  }
 
   private String readAttrsToDoc()
     throws IOException
@@ -71,10 +71,9 @@ public class FDoc
 
   private void consume()
     throws IOException
-    {
+  {
     cur = in.readLine();
   }
-
 
   private BufferedReader in;  // stream of lines to read
   private ClassType type;     // type we are storing result to

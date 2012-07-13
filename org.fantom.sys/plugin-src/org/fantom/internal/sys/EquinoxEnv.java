@@ -24,7 +24,7 @@ public class EquinoxEnv extends Env
     super(Sys.bootEnv);
     for (Pod pod : Pod.load())
     {
-      pods.put(pod.getName(), pod);
+      pods.put(pod.getName(), pod); //gets all pods from plugins
     }
   }
 
@@ -59,8 +59,9 @@ public class EquinoxEnv extends Env
     return acc;
   }
 
+  //these problems - env.java applyaptch
   @Override
-  public ClassLoader getJavaClassLoader(String callingPod)
+  public ClassLoader getJavaClassLoader(String callingPod)  //return Pod:ClassLoader
   {
     final Pod pod = pods.get(callingPod);
     if (pod != null)
@@ -76,7 +77,7 @@ public class EquinoxEnv extends Env
   @Override
   public Class loadJavaClass(String className, String loadingPod) throws Exception
   {
-    return getJavaClassLoader(loadingPod).loadClass(className);
+    return getJavaClassLoader(loadingPod).loadClass(className); //load class from own classloader
   }
   
   public void addJStubPod(String name, fan.sys.File pod) {
