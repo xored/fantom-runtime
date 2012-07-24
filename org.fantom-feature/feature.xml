@@ -2,7 +2,7 @@
 <feature
       id="org.fantom"
       label="Fantom Runtime"
-      version="1.0.60.qualifier">
+      version="1.0.63.qualifier">
 
    <description>
       Fantom OSGi runtime
