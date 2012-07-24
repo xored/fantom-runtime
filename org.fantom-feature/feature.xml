@@ -2,7 +2,9 @@
 <feature
       id="org.fantom"
       label="Fantom Runtime"
-      version="1.0.63.qualifier">
+      version="1.0.63.qualifier"
+      provider-name="xored software, Inc."
+      plugin="com.xored.f4.platform">
 
    <description>
       Fantom OSGi runtime
