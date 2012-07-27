@@ -23,7 +23,7 @@ class PrintClass
 
     try
     {
-      File input := File.make(Uri.decode(args[0]))
+      File input := Uri.decode(args[0]).toFile
       in = input.in
     }
     catch (ParseErr e)
