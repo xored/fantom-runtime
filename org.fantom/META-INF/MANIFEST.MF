@@ -9,6 +9,6 @@ Require-Bundle: org.eclipse.core.runtime
 Bundle-Localization: plugin
 Eclipse-BundleShape: dir
 Bundle-ActivationPolicy: lazy
-Bundle-RequiredExecutionEnvironment: J2SE-1.5
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Export-Package: org.fantom,
  org.fantom.internal.core
