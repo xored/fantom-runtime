@@ -270,7 +270,7 @@ class FFacetEmit
     throws Exception
   {
     if (curClass == null)
-      curClass = Env.cur().loadJavaClass(curType.jname().replace("/", "."));
+      curClass = Env.cur().loadJavaClass(curType.jname().replace("/", "."), pod.podName);
     return curClass;
   }
 
