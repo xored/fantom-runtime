@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Fantom Runtime
 Bundle-SymbolicName: org.fantom;singleton:=true
-Bundle-Version: 1.0.63.qualifier
+Bundle-Version: 1.0.68.qualifier
 Bundle-Vendor: xored software, Inc.
 Bundle-Activator: org.fantom.FantomVM
 Require-Bundle: org.eclipse.core.runtime
