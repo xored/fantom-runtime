@@ -53,6 +53,11 @@ public class FanHome {
 		if (fileName.endsWith("/")) {
 			new File(location, fileName).mkdirs();
 		} else {
+			// Make parent dirs if not exists
+			File parentFile = new File(location, fileName).getParentFile();
+			if( !parentFile.exists()) {
+				parentFile.mkdirs();
+			}
 			FileOutputStream os = new FileOutputStream(new File(location,
 					fileName));
 			copyStream(url.openStream(), os);
