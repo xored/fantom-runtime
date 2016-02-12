@@ -49,6 +49,12 @@
          version="0.0.0"/>
 
    <plugin
+         id="org.fantom.fanr"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
+
+   <plugin
          id="org.fantom.fwt"
          download-size="0"
          install-size="0"
