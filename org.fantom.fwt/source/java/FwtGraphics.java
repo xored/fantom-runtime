@@ -189,6 +189,11 @@ public class FwtGraphics implements Graphics
     brush(this.brush);
   }
 
+  public GraphicsPath path()
+  {
+    return new FwtGraphicsPath(this);
+  }
+
   public Graphics drawLine(long x1, long y1, long x2, long y2)
   {
     gc.drawLine((int)x1, (int)y1, (int)x2, (int)y2);
@@ -221,7 +226,6 @@ public class FwtGraphics implements Graphics
 
   public Graphics fillRect(long x, long y, long w, long h)
   {
-    gc.setAdvanced(true);
     // this is one case where we optimize gradients for view rect
     if (brush instanceof Gradient)
     {
@@ -237,7 +241,6 @@ public class FwtGraphics implements Graphics
     {
       gc.fillRectangle((int)x, (int)y, (int)w, (int)h);
     }
-    gc.setAdvanced(false);
     return this;
   }
 
@@ -401,6 +404,7 @@ public class FwtGraphics implements Graphics
     }
     return a;
   }
+
 //////////////////////////////////////////////////////////////////////////
 // Java Access
 //////////////////////////////////////////////////////////////////////////

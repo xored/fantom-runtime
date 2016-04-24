@@ -103,6 +103,11 @@ public class BootEnv
     this.args = (List)new List(Sys.StrType, args).toImmutable();
   }
 
+  public void setMainMethod(Method m)
+  {
+    this.mainMethod = m;
+  }
+
 //////////////////////////////////////////////////////////////////////////
 // Obj
 //////////////////////////////////////////////////////////////////////////
@@ -114,6 +119,8 @@ public class BootEnv
 //////////////////////////////////////////////////////////////////////////
 
   public List args() { return args; }
+
+  public Method mainMethod() { return mainMethod; }
 
   public Map vars()  { return vars; }
 
@@ -334,7 +341,7 @@ public class BootEnv
     }
   }
 
-  public Class loadJavaClass(String className, String callingPod)
+  public Class loadJavaClass(String className)
     throws Exception
   {
     // handle primitives, these don't get handled by URLClassLoader
@@ -353,13 +360,7 @@ public class BootEnv
     }
 
     // route to extention classloader
-    return getJavaClassLoader(callingPod).loadClass(className);
-  }
-
-  @Override
-  public ClassLoader getJavaClassLoader(String pod)
-  {
-    return FanClassLoader.extClassLoader;
+    return FanClassLoader.extClassLoader.loadClass(className);
   }
 
 //////////////////////////////////////////////////////////////////////////
@@ -367,6 +368,7 @@ public class BootEnv
 //////////////////////////////////////////////////////////////////////////
 
   private List args;
+  private Method mainMethod;
   private final Map vars;
   private final String host;
   private final String user;

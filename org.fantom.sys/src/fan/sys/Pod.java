@@ -160,11 +160,6 @@ public class Pod
       // if null or doesn't exist then its a no go
       if (file == null || !file.exists()) throw UnknownPodErr.make(name);
 
-      // verify case since Windoze is case insensitive
-      String actualName = file.getCanonicalFile().getName();
-      actualName = actualName.substring(0, actualName.length()-4);
-      if (!actualName.equals(name)) throw UnknownPodErr.make("Mismatch case: " + name + " != " + actualName);
-
       store = FStore.makeZip(file);
     }
 
@@ -263,7 +258,7 @@ public class Pod
 // Constructor
 //////////////////////////////////////////////////////////////////////////
 
-  public Pod(FPod fpod, Pod[] dependPods)
+  Pod(FPod fpod, Pod[] dependPods)
   {
     this.name = fpod.podName;
     this.classLoader = new FanClassLoader(this);
@@ -562,21 +557,6 @@ public class Pod
 
     // lost cause
     throw UnknownTypeErr.make(podName + "::" + typeName);
-  }
-
-  public static HashMap storePodsCache()
-  {
-    synchronized(podsByName) {
-      HashMap copy = new HashMap(podsByName);
-      return copy;
-    }
-  }
-  public static void restorePodsCache(HashMap copy)
-  {
-    synchronized(podsByName) {
-      podsByName.clear();
-      podsByName.putAll(copy);
-    }
   }
 
 //////////////////////////////////////////////////////////////////////////

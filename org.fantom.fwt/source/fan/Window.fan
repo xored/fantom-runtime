@@ -16,6 +16,16 @@ using gfx
 @Serializable
 class Window : ContentPane
 {
+  **
+  ** Callback function when window is opended.
+  **
+  ** Event id fired:
+  **  - `EventId.open`
+  **
+  ** Event fields:
+  **   - none
+  **
+  once EventListeners onOpen() { EventListeners() }
 
   **
   ** Callback function when window is closed.  Consume
@@ -111,7 +121,7 @@ class Window : ContentPane
   **
   ** Child menu bar widget if top level frame.
   **
-  Menu? menuBar { set { remove(&menuBar); Widget.super.add(it); &menuBar = it} }
+  Menu? menuBar { set { remove(&menuBar); doAdd(it); &menuBar = it} }
 
   **
   ** Icon if window is a frame.
@@ -156,6 +166,15 @@ class Window : ContentPane
 
   ** Back-door hook until we officially support drag and drop.
   ** See WindowPeer.java for details
-  internal |Obj data|? onDrop
+  @NoDoc |Obj data|? onDrop
+
+  ** Sets overlay text on dock icon for OSX.  Use empty string to
+  ** clear text.
+  **
+  ** TODO FIXIT:
+  **  - Should get moved to "FwtApp" when ready
+  **  - Any better names?
+  **  - Add a clearOverlayText method?
+  @NoDoc native Void setOverlayText(Str text)
 
 }
