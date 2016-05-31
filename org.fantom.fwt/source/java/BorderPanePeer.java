@@ -46,7 +46,7 @@ public class BorderPanePeer
     FwtGraphics g = new FwtGraphics(e);
     try
     {
-    ((fan.fwt.BorderPane)self).onPaint(g);
+      ((fan.fwt.BorderPane)self).onPaint(g);
     }
     finally
     {

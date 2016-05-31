@@ -15,6 +15,7 @@ import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
+import org.eclipse.swt.graphics.ImageLoader;
 import org.eclipse.swt.graphics.Rectangle;
 
 public class FwtEnvPeer
@@ -57,8 +58,7 @@ public class FwtEnvPeer
     // create new SWT image
     // TODO: this doesn't handle transparency
     ImageData sdata = s.getImageData();
-    ImageData rdata = new ImageData(rw, rh, sdata.depth, sdata.palette);
-    rdata.transparentPixel = sdata.transparentPixel; // this don't work
+    ImageData rdata = sdata.scaledTo(rw, rh);
     Image resultSwt = new Image(fwt.display, rdata);
 
     // paint new SWT image
@@ -96,9 +96,46 @@ public class FwtEnvPeer
   private fan.gfx.Image toFanImage(Image swtImage)
   {
     Uri uri = Uri.fromStr("mem-" + Uuid.make());
-    fan.gfx.Image fanImage = fan.gfx.Image.makeUri(uri);
+    fan.gfx.Image fanImage = fan.gfx.Image.makeFields(uri, null);
     Fwt.get().images.put(uri, swtImage);
     return fanImage;
+  }
+
+  public void imageDispose(FwtEnv self, fan.gfx.Image x)
+  {
+    Fwt.get().dispose(x);
+  }
+
+  public void imageWrite(FwtEnv self, fan.gfx.Image img, MimeType type, OutStream out)
+  {
+    try
+    {
+      // map mime type to SWT constant
+      int format = -1;
+      String mime = type.noParams().toString();
+      if (mime.equals("image/png"))       format = SWT.IMAGE_PNG;
+      else if (mime.equals("image/jpeg")) format = SWT.IMAGE_JPEG;
+      else if (mime.equals("image/gif"))  format = SWT.IMAGE_GIF;
+      else throw ArgErr.make("Unsupported mime type: " + mime);
+
+      // map Fantom image to SWT image
+      Fwt fwt = Fwt.get();
+      Image swtImg = fwt.image(img);
+      if (swtImg == null) throw Err.make("Image not valid or not loaded yet");
+
+      // map Fantom output stream to Java output stream
+      java.io.OutputStream jout = SysOutStream.java(out);
+
+      // write the image
+      ImageLoader saver = new ImageLoader();
+      saver.data = new ImageData[] { swtImg.getImageData() };
+      saver.save(jout, format);
+      jout.flush();
+    }
+    catch (java.io.IOException e)
+    {
+      throw IOErr.make(e);
+    }
   }
 
 //////////////////////////////////////////////////////////////////////////
@@ -130,12 +167,26 @@ public class FwtEnvPeer
     return scratchGC(f).textExtent(s).x;
   }
 
+  public void fontDispose(FwtEnv self, fan.gfx.Font x)
+  {
+    Fwt.get().dispose(x);
+  }
+
   private GC scratchGC(fan.gfx.Font f)
   {
     Fwt fwt = Fwt.get();
     GC gc = fwt.scratchGC();
     gc.setFont(fwt.font(f));
     return gc;
+  }
+
+//////////////////////////////////////////////////////////////////////////
+// Color Support
+//////////////////////////////////////////////////////////////////////////
+
+  public void colorDispose(FwtEnv self, fan.gfx.Color x)
+  {
+    Fwt.get().dispose(x);
   }
 
 }

@@ -16,6 +16,7 @@
     <module>org.fantom.compilerJs</module>
     <module>org.fantom.concurrent</module>
     <module>org.fantom.fandoc</module>
+    <module>org.fantom.fanr</module>
     <module>org.fantom.fwt</module>
     <module>org.fantom.gfx</module>
     <module>org.fantom.inet</module>
@@ -24,19 +25,19 @@
     <module>org.fantom.web</module>
     <module>org.fantom.webmod</module>
     <module>org.fantom.wisp</module>
-    
-    
+
+
     <!-- Embedded -->
 	<!--module>com.xored.f4.fantom-feature</module>
 	<module>com.xored.f4.fantom</module-->
   </modules>
-  
+
 	<properties>
 		<tycho-version>0.8.0</tycho-version>
 		<tycho-groupid>org.sonatype.tycho</tycho-groupid>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
-  
+
 	<repositories>
 		<repository>
 			<id>helios</id>
@@ -44,7 +45,7 @@
 			<url>http://download.xored.com/mirrors/helios/</url>
 		</repository>
 	</repositories>
-  
+
   <build>
 		<plugins>
 			<plugin>
@@ -63,7 +64,7 @@
 				<artifactId>maven-osgi-compiler-plugin</artifactId>
 				<version>${tycho-version}</version>
 			</plugin>
-			
+
 			<plugin>
 				<groupId>org.sonatype.tycho</groupId>
 				<artifactId>target-platform-configuration</artifactId>

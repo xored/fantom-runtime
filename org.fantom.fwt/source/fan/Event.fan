@@ -85,6 +85,14 @@ class Event
   Obj? data
 
   **
+  ** Return if this a single click, mouse up on button 3
+  **
+  Bool isPopupTrigger()
+  {
+    id === EventId.mouseUp && button == 3 && count == 1
+  }
+
+  **
   ** If this a popup event, then this field should be set
   ** to the menu item to open.  Setting this field to a nonnull
   ** value implicitly consumes the event.
@@ -189,17 +197,14 @@ class EventListeners
   ** Fire the event to all the listeners
   Void fire(Event? event)
   {
-    listeners.each | |Event| cb |
+    listeners.each |cb|
     {
-      try
+      if (event?.consumed == true) return
+      if (Env.cur.runtime == "js") cb(event)
+      else
       {
-        if (event == null || !event.consumed)
-          cb(event)
-      }
-      catch (Err e)
-      {
-        echo("event: $event")
-        e.trace
+        try { cb(event) }
+        catch (Err e) { echo("event: $event"); e.trace }
       }
     }
   }

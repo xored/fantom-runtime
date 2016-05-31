@@ -204,8 +204,17 @@ public class WindowPeer
     if (mb.y < db.y) mb.y = db.y;
     self.bounds(rect(mb));
 
+    // set default button
+    if (defButton != null)
+      shell.setDefaultButton((org.eclipse.swt.widgets.Button)defButton.peer.control);
+
     // open
     shell.open();
+
+    // TODO FIXIT: we actually want to fire this after the event
+    // loop is entered, so SWT is "active" - for now we can use
+    // Desktop.callLater(~10ms) as a workaround
+    self.onOpen().fire(event(EventId.open));
 
     // block until dialog is closed
     fwt.eventLoop(shell);
@@ -275,10 +284,20 @@ public class WindowPeer
   }
 
 //////////////////////////////////////////////////////////////////////////
+// NoDoc
+//////////////////////////////////////////////////////////////////////////
+
+  public void setOverlayText(Window self, String text)
+  {
+    Fwt.get().display.getSystemTaskBar().getItem(0).setOverlayText(text);
+  }
+
+//////////////////////////////////////////////////////////////////////////
 // Fields
 //////////////////////////////////////////////////////////////////////////
 
   boolean explicitPos;    // has pos been explicitly configured?
   boolean explicitSize;   // has size been explicitly configured?
+  Button defButton;
   Object result;
 }

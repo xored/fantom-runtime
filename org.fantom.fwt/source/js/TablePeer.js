@@ -61,6 +61,7 @@ fan.fwt.TablePeer.injectCss = function()
     " text-align: left;" +
     " white-space: nowrap;" +
     " border-right: 1px solid #d9d9d9;" +
+    " cursor: default;" +
     "}" +
     "table.__fwt_table td:last-child {" +
     " width: 100%;" +
@@ -87,9 +88,34 @@ fan.fwt.TablePeer.injectCss = function()
     fan.fwt.WidgetPeer.addCss("table.__fwt_table td img.right + span { margin-right:25px; }");
 }
 
+fan.fwt.TablePeer.$blank     = fan.sys.Uri.fromStr("fan://fwt/res/img/blank16.png");
+fan.fwt.TablePeer.$arrowUp   = fan.sys.Uri.fromStr("fan://fwt/res/img/arrowUp.png");
+fan.fwt.TablePeer.$arrowDown = fan.sys.Uri.fromStr("fan://fwt/res/img/arrowDown.png");
+fan.fwt.TablePeer.$imgClass  = [];
+
 // TODO
 //fan.fwt.TablePeer.prototype.colAt = function(self, pos) {}
 //fan.fwt.TablePeer.prototype.rowAt = function(self, pos) {}
+
+fan.fwt.TablePeer.prototype.$cellPos = function(self, col, row)
+{
+  // check args
+  var model = self.m_model;
+  if (col >= model.numCols()) throw fan.sys.ArgErr.make("col out of bounds");
+  if (row >= model.numRows()) throw fan.sys.ArgErr.make("row out of bounds");
+
+  // find cell
+  if (this.m_headerVisible) row++;
+  var div   = this.elem;
+  var table = this.elem.firstChild;
+  var tr    = table.rows[row]
+  var td    = tr.cells[col]
+
+  // find pos
+  var x = td.offsetLeft - div.scrollLeft;
+  var y = tr.offsetTop  - div.scrollTop;
+  return fan.gfx.Point.make(x,y);
+}
 
 fan.fwt.TablePeer.prototype.m_headerVisible = true;
 fan.fwt.TablePeer.prototype.headerVisible   = function(self) { return this.m_headerVisible; }
@@ -139,8 +165,52 @@ fan.fwt.TablePeer.prototype.create = function(parentElem, self)
   style.background = "#fff";
 
   var $this = this;
-  table.addEventListener("mousedown", function(event) {
-    $this.$onMouseDown(self, event);
+  div.addEventListener("mousedown", function(event) {
+    if (event.target !== div) return;
+// TODO FIXIT: ignore scrollbar presses
+if (div.offsetWidth  - event.clientX < 20) return;
+if (div.offsetHeight - event.clientY < 20) return;
+
+    $this.m_selected = $this.selection.select([]);
+    $this.selection.notify(null);
+  });
+
+  table.addEventListener("mousedown", function(event)
+  {
+    var clicks = $this.m_mouseClicks;
+    var xcur = event.clientX;
+    var ycur = event.clientY;
+
+    // init mouse clicks if not defined
+    if (clicks == null)
+    {
+      clicks = {
+        last: new Date().getTime(),
+        x: xcur,
+        y: ycur,
+        cur:  0
+      };
+    }
+
+    // verify pos and frequency
+    var now  = new Date().getTime();
+    var diff = now - clicks.last;
+    if (diff < 600 && clicks.x == xcur && clicks.y == ycur)
+    {
+      // increment click count
+      clicks.cur++;
+    }
+    else
+    {
+      // reset handler
+      clicks.x = xcur;
+      clicks.y = ycur;
+      clicks.cur = 1;
+    }
+
+    clicks.last = now;
+    $this.m_mouseClicks = clicks;
+    $this.$onMouseDown(self, event, clicks.cur);
   }, false);
 
   div.addEventListener("keydown", function(event) {
@@ -166,7 +236,7 @@ fan.fwt.TablePeer.prototype.refreshAll = function(self)
 
 fan.fwt.TablePeer.prototype.refreshRows = function(self, indices)
 {
-  this.refreshAll();
+  this.refreshAll(self);
 }
 
 fan.fwt.TablePeer.prototype.needRebuild = true;
@@ -202,7 +272,9 @@ fan.fwt.TablePeer.prototype.rebuild = function(self)
   }
 
   // used for firefox workaround
-  var isFirefox = navigator.userAgent.indexOf("Firefox/") != -1;
+  var isWebkit  = fan.fwt.DesktopPeer.$isWebkit;
+  var isChrome  = fan.fwt.DesktopPeer.$isChrome;
+  var isFirefox = fan.fwt.DesktopPeer.$isFirefox;
 
   // build new content
   var $this = this;
@@ -212,45 +284,35 @@ fan.fwt.TablePeer.prototype.rebuild = function(self)
   var rows  = view.numRows();
   var cols  = view.numCols();
   var sortCol = self.sortCol();
+  var blank = fan.fwt.WidgetPeer.uriToImageSrc(fan.fwt.TablePeer.$blank);
 
   if (this.m_headerVisible)
   {
     var tr = document.createElement("tr");
-    for (var c=-1; c<cols; c++)
+    tr.oncontextmenu = function(e) { $this.support.popup(e); return false; }
+    for (var c=0; c<cols; c++)
     {
       // we have to embed a div inside our th to make
       // the borders overlap correctly
       var fix = document.createElement("div");
-      if (c < 0)
+      var s = view.header(c);
+      if (s.length == 0) fix.innerHTML = "&nbsp;"
+      else fix.appendChild(document.createTextNode(s));
+      var halign = view.halign(c);
+      switch (halign)
       {
-        fix.innerHTML = "&nbsp;";
-        var arrow  = this.makeArrowDown();
-        arrow.style.top  = "9px";
-        arrow.style.left = "14px";
-        fix.appendChild(arrow);
-        fix.onmousedown = function() { $this.support.popup(); }
+        case fan.gfx.Halign.m_left:   fix.style.textAlign = "left"; break;
+        case fan.gfx.Halign.m_center: fix.style.textAlign = "center"; break;
+        case fan.gfx.Halign.m_right:  fix.style.textAlign = "right"; break;
       }
-      else
+      if (c === sortCol)
       {
-        var s = view.header(c);
-        if (s.length == 0) fix.innerHTML = "&nbsp;"
-        else fix.appendChild(document.createTextNode(s));
-        var halign = view.halign(c);
-        switch (halign)
-        {
-          case fan.gfx.Halign.m_left:   fix.style.textAlign = "left"; break;
-          case fan.gfx.Halign.m_center: fix.style.textAlign = "center"; break;
-          case fan.gfx.Halign.m_right:  fix.style.textAlign = "right"; break;
-        }
-        if (c === sortCol)
-        {
-          var down = self.sortMode() == fan.fwt.SortMode.m_down;
-          var arrow  = this.makeArrowDown(down);
-          arrow.style.top  = "9px";
-          arrow.style.right = "9px";
-          fix.style.paddingRight = "12px";
-          fix.appendChild(arrow);
-        }
+        var down = self.sortMode() == fan.fwt.SortMode.m_down;
+        var arrow  = this.makeArrow(down);
+        arrow.style.top  = "7px";
+        arrow.style.right = "4px";
+        fix.style.paddingRight = "16px";
+        fix.appendChild(arrow);
       }
       var th = document.createElement("th");
       th.appendChild(fix);
@@ -262,79 +324,99 @@ fan.fwt.TablePeer.prototype.rebuild = function(self)
   for (var r=0; r<rows; r++)
   {
     var tr = document.createElement("tr");
-    for (var c=-1; c<cols; c++)
+    for (var c=0; c<cols; c++)
     {
       var td = document.createElement("td");
-      if (c < 0)
+      var node = td;
+
+      // cell hyperlink
+      var uri = null;
+      if (model.$uri) uri = model.$uri(view.m_cols.get(c), view.m_rows.get(r));
+      if (uri != null)
       {
-        // selection checkbox
-        var cb = document.createElement("input");
-        cb.tabIndex = -1;
-        cb.type = "checkbox";
-        var $this = this;
-        cb.onclick = function(event) { $this.selection.toggle(event ? event : window.event) };
-        td.appendChild(cb);
+        var a = document.createElement("a");
+        a.href = uri.encode();
+        node.appendChild(a);
+        node = a;
       }
-      else
+
+      // cell image
+      var imgElem = null;
+      var img = view.image(c,r);
+      if (img != null)
       {
-        var node = td;
+        imgElem = document.createElement("img");
+        imgElem.src = blank;
+        imgElem.style.backgroundImage = "url(" + fan.fwt.WidgetPeer.uriToImageSrc(img.m_uri) + ")";
+        imgElem.style.backgroundSize = "16px 16px";
+        imgElem.width  = 16;
+        imgElem.height = 16;
 
-        // cell hyperlink
-        var uri = null;
-        if (model.$uri) uri = model.$uri(view.m_cols.get(c), view.m_rows.get(r));
-        if (uri != null)
+        // check for imageSel
+        if (model.$imageSel)
         {
-          var a = document.createElement("a");
-          a.href = uri.encode();
-          node.appendChild(a);
-          node = a;
-        }
-
-        // cell image
-        var imgElem = null;
-        var img = view.image(c,r);
-        if (img != null)
-        {
-          imgElem = document.createElement("img");
-          imgElem.src = fan.fwt.WidgetPeer.uriToImageSrc(img.m_uri);
-
-          // image align
-          var halignImg = fan.gfx.Halign.m_left;
-          if (model.$halignImage) halignImg = model.$halignImage(view.m_cols.get(c));
-          if (halignImg === fan.gfx.Halign.m_right) imgElem.className = "right";
-        }
-
-        // cell text
-        var text = view.text(c,r);
-        if (imgElem == null) node.appendChild(document.createTextNode(text));
-        else
-        {
-          node.appendChild(imgElem);
-          if (text.length > 0)
+          var sel = model.$imageSel(view.m_cols.get(c), view.m_rows.get(r));
+          if (sel != null)
           {
-            var span = document.createElement("span");
-
-            // workaround for Firefox float "bug"
-            if (isFirefox && imgElem.className == "right")
-              span.style.marginRight = "22px";
-
-            span.appendChild(document.createTextNode(text));
-            node.appendChild(span);
+            var name = "sel_" + sel.m_uri.basename();
+            if (fan.fwt.TablePeer.$imgClass[name] == null)
+            {
+              var cls = "div.__fwt_table:focus tr.selected td img." + name + " {" +
+               " background-image: url(" + fan.fwt.WidgetPeer.uriToImageSrc(sel.m_uri) + ")" +
+               " !important; }";
+              fan.fwt.WidgetPeer.addCss(cls);
+              fan.fwt.TablePeer.$imgClass[name] = true;
+            }
+            fan.fwt.WidgetPeer.addClassName(imgElem, name);
           }
         }
 
-        // style overrides
-        var fg = view.fg(c,r); if (fg != null) td.style.color = fg.toCss();
-        var bg = view.bg(c,r); if (bg != null) td.style.background = bg.toCss();
-        var font = view.font(c,r); if (font != null) td.style.font = fan.fwt.WidgetPeer.fontToCss(font);
-        var halign = view.halign(c);
-        switch (halign)
+        // image align
+        var halignImg = fan.gfx.Halign.m_left;
+        if (model.$halignImage) halignImg = model.$halignImage(view.m_cols.get(c));
+        if (halignImg === fan.gfx.Halign.m_right) fan.fwt.WidgetPeer.addClassName(imgElem, "right");
+      }
+
+      // cell text
+      var text = view.text(c,r);
+      var addTextNode = function(n,t)
+      {
+        if (t == "") n.innerHTML = "&nbsp;"
+        else n.appendChild(document.createTextNode(t));
+      }
+      if (imgElem == null) addTextNode(node, text);
+      else
+      {
+        node.appendChild(imgElem);
+        if (text.length > 0)
         {
-          case fan.gfx.Halign.m_left:   td.style.textAlign = "left"; break;
-          case fan.gfx.Halign.m_center: td.style.textAlign = "center"; break;
-          case fan.gfx.Halign.m_right:  td.style.textAlign = "right"; break;
+          var span = document.createElement("span");
+
+          // workaround for Webkit float "bug"
+          if (isWebkit)
+            span.style.paddingRight = "16px";
+
+          // workaround for Firefox float "bug"
+          else if (isFirefox && imgElem.className == "right")
+            span.style.marginRight = "22px";
+
+          addTextNode(span, text);
+          node.appendChild(span);
         }
       }
+
+      // style overrides
+      var fg = view.fg(c,r); if (fg != null) td.style.color = fg.toCss();
+      var bg = view.bg(c,r); if (bg != null) td.style.background = bg.toCss();
+      var font = view.font(c,r); if (font != null) td.style.font = fan.fwt.WidgetPeer.fontToCss(font);
+      var halign = view.halign(c);
+      switch (halign)
+      {
+        case fan.gfx.Halign.m_left:   td.style.textAlign = "left"; break;
+        case fan.gfx.Halign.m_center: td.style.textAlign = "center"; break;
+        case fan.gfx.Halign.m_right:  td.style.textAlign = "right"; break;
+      }
+
       tr.appendChild(td);
     }
     tbody.appendChild(tr);
@@ -351,11 +433,16 @@ fan.fwt.TablePeer.prototype.rebuild = function(self)
   }
   table.appendChild(tbody);
 
-  // sync selection
-  this.selection.select(this.m_selected);
+  // sync selection - must map row model back to view in case sorted
+  var sel = [];
+  var selLen=this.m_selected.size();
+  for (var i=0; i<selLen; i++) {
+    sel[i] = view.rowModelToView(this.m_selected.get(i));
+  }
+  this.selection.select(sel);
 }
 
-fan.fwt.TablePeer.prototype.$onMouseDown = function(self, event)
+fan.fwt.TablePeer.prototype.$onMouseDown = function(self, event, count)
 {
   var target = event.target;
 
@@ -363,27 +450,44 @@ fan.fwt.TablePeer.prototype.$onMouseDown = function(self, event)
   if (target.tagName == "DIV") target = target.parentNode;
   if (target.tagName == "TH")
   {
-    var col = target.cellIndex - 1;
-    if (col < 0) return;
-
+    if (event.button != 0 || event.ctrlKey) return;
+    var col = target.cellIndex
     var old = self.sortCol();
     var mode = old === col ? self.sortMode().toggle() : fan.fwt.SortMode.m_up;
     self.sort(col, mode);
+    return;
   }
 
   // cell events
-  if (target.tagName == "IMG") target = target.parentNode;
+  if (target.tagName == "IMG")  target = target.parentNode;
+  if (target.tagName == "SPAN") target = target.parentNode;
   if (target.tagName == "TD")
   {
-    // find cell address
-    var col = target.cellIndex - 1;
-    var row = target.parentNode.rowIndex - 1;
-    if (col < 0 || row < 0) return;
-
-    // check for valid callback
     var model = self.m_model;
     var view  = self.view();
-    if (!model.$onMouseDown) return;
+
+    // find cell address
+    var col = target.cellIndex;
+    var row = target.parentNode.rowIndex;
+    if (this.m_headerVisible) row--;
+    if (row < 0) return;
+
+    // select row
+    this.selection.addSelection(event, row);
+
+    // handle onAction event
+    if (count == 2)
+    {
+      var ae = fan.fwt.Event.make();
+      ae.m_id = fan.fwt.EventId.m_action;
+      ae.m_widget = self;
+      ae.m_index = view.m_rows.get(row);
+      self.onAction().fire(ae);
+      return;
+    }
+
+    // check for valid callback
+    if (!model.$onMouseDown && !self.onCellMouseDown) return;
 
     // find pos on display
     var dis = this.posOnDisplay(self);
@@ -392,8 +496,8 @@ fan.fwt.TablePeer.prototype.$onMouseDown = function(self, event)
     // find pos relative to cell
     var div   = this.elem;
     var table = div.firstChild;
-    var tr  = table.rows[row+1];
-    var td  = tr.cells[col+1];
+    var tr  = table.rows[row + (this.m_headerVisible ? 1 : 0)];
+    var td  = tr.cells[col];
     var rx  = posOnDis.m_x - td.offsetLeft + div.scrollLeft;
     var ry  = posOnDis.m_y - tr.offsetTop  + div.scrollTop;
     var rel = fan.gfx.Point.make(rx, ry);
@@ -402,25 +506,30 @@ fan.fwt.TablePeer.prototype.$onMouseDown = function(self, event)
     var data = fan.sys.Map.make(fan.sys.Str.$type, fan.sys.Obj.$type);
     data.set("posOnDisplay", posOnDis);
     data.set("cellSize",     fan.gfx.Size.make(td.offsetWidth, td.offsetHeight));
+    data.set("col", view.m_cols.get(col));
+    data.set("row", view.m_rows.get(row));
 
     // fire event
     var evt = fan.fwt.Event.make();
     evt.m_id = fan.fwt.EventId.m_mouseDown;
     evt.m_pos = rel;
     evt.m_widget = self;
+    evt.m_index = row;
     evt.m_data = data;
-    model.$onMouseDown(evt, view.m_cols.get(col), view.m_rows.get(row));
+    if (model.$onMouseDown) model.$onMouseDown(evt, view.m_cols.get(col), view.m_rows.get(row));
+    if (self.onCellMouseDown) self.onCellMouseDown().fire(evt);
   }
 }
 
 fan.fwt.TablePeer.prototype.$onKeyDown = function(self, event)
 {
-  // only handle up/down
+  // only handle up/down/space
   var key = event.keyCode;
-  if (key != 38 && key != 40) return;
+  if (key != 38 && key != 40 && key != 32) return;
 
   // consume event
   event.stopPropagation();
+  event.preventDefault();
 
   // if table is empty, short-circuit here
   var rows = self.model().numRows();
@@ -442,6 +551,14 @@ fan.fwt.TablePeer.prototype.$onKeyDown = function(self, event)
   {
          if (key == 38) list = [Math.max(0, first-1)];
     else if (key == 40) list = [Math.min(first+1, rows-1)];
+    else if (key == 32)
+    {
+      var ae = fan.fwt.Event.make();
+      ae.m_id = fan.fwt.EventId.m_action;
+      ae.m_widget = self;
+      ae.m_index = first;
+      self.onAction().fire(ae);
+    }
     this.keySelPivot = list[0];
   }
   else
@@ -457,6 +574,7 @@ fan.fwt.TablePeer.prototype.$onKeyDown = function(self, event)
       if (first < this.keySelPivot) list = list.slice(1, list.length);
       else  { if (last+1 < rows) list.push(last+1); }
     }
+
   }
 
   this.m_selected = fan.sys.List.make(fan.sys.Int.$type, list).sort();
@@ -464,42 +582,17 @@ fan.fwt.TablePeer.prototype.$onKeyDown = function(self, event)
   this.selection.notify(this.m_selected.first());
 }
 
-fan.fwt.TablePeer.prototype.makeArrowDown = function(down)
+fan.fwt.TablePeer.prototype.makeArrow = function(down)
 {
   if (down === undefined) down = true;
-  var s = down ? 0 : 2;
-  var d = down ? 1 : -1;
 
-  var div = document.createElement("div");
-  div.style.position = "absolute";
-  div.width  = "5px";
-  div.height = "3px";
-
-  var dot = null;
-  dot = this.makeDot(); dot.style.top=""+s+"px"; dot.style.left="0px"; div.appendChild(dot);
-  dot = this.makeDot(); dot.style.top=""+s+"px"; dot.style.left="1px"; div.appendChild(dot);
-  dot = this.makeDot(); dot.style.top=""+s+"px"; dot.style.left="2px"; div.appendChild(dot);
-  dot = this.makeDot(); dot.style.top=""+s+"px"; dot.style.left="3px"; div.appendChild(dot);
-  dot = this.makeDot(); dot.style.top=""+s+"px"; dot.style.left="4px"; div.appendChild(dot);
-  s += d;
-
-  dot = this.makeDot(); dot.style.top=""+s+"px"; dot.style.left="1px"; div.appendChild(dot);
-  dot = this.makeDot(); dot.style.top=""+s+"px"; dot.style.left="2px"; div.appendChild(dot);
-  dot = this.makeDot(); dot.style.top=""+s+"px"; dot.style.left="3px"; div.appendChild(dot);
-  s += d;
-
-  dot = this.makeDot(); dot.style.top=""+s+"px"; dot.style.left="2px"; div.appendChild(dot);
-  return div;
-}
-
-fan.fwt.TablePeer.prototype.makeDot = function()
-{
-  var dot = document.createElement("div");
-  dot.style.position   = "absolute";
-  dot.style.width      = "1px";
-  dot.style.height     = "1px";
-  dot.style.background = "#404040";
-  return dot;
+  var uri = down ? fan.fwt.TablePeer.$arrowDown : fan.fwt.TablePeer.$arrowUp
+  var img = document.createElement("img");
+  img.src = fan.fwt.WidgetPeer.uriToImageSrc(uri);
+  img.style.position = "absolute";
+  img.style.width = "8px";
+  img.style.height = "7px";
+  return img;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -513,15 +606,10 @@ fan.fwt.TableSelection.prototype.$ctor = function(table)
   this.last = null;
 }
 
-fan.fwt.TableSelection.prototype.toggle = function(event)
+fan.fwt.TableSelection.prototype.addSelection = function(event, row)
 {
-  var target = event.target ? event.target : event.srcElement;
-  var multi  = this.table.m_multi && (event.ctrlKey || event.metaKey || event.shiftKey);
-  var on  = target.checked;
-  var tr  = target.parentNode.parentNode;
-  var row = tr.rowIndex;
-  if (this.table.peer.m_headerVisible) row--; // account for th row
-  var list = null;
+  var multi = this.table.m_multi && (event.ctrlKey || event.metaKey || event.shiftKey);
+  var list = null
 
   if (multi)
   {
@@ -550,11 +638,14 @@ fan.fwt.TableSelection.prototype.toggle = function(event)
       if (!found) list.push(row);
       this.last = row;
     }
+
+    // clear selection
+    window.getSelection().removeAllRanges();
   }
   else
   {
-    var hadMulti = this.table.m_multi && this.table.peer.m_selected.size() > 1;
-    list = (on || hadMulti) ? [row] : [];
+    if (this.table.peer.m_selected.first == row) return;
+    list = [row];
     this.last = row;
   }
 
@@ -568,7 +659,12 @@ fan.fwt.TableSelection.prototype.select = function(rows)
   var selected = [];
   var view  = this.table.view();
   var tbody = this.table.peer.elem.firstChild.firstChild;
+  if (tbody == null || tbody.childNodes == null) {
+    return fan.sys.List.make(fan.sys.Int.$type, selected);
+  }
   var start = this.table.peer.m_headerVisible ? 1 : 0; // skip th row
+  var first = null;
+  var last  = null;
   for (var i=start; i<tbody.childNodes.length; i++)
   {
     var row = i-start;
@@ -580,6 +676,8 @@ fan.fwt.TableSelection.prototype.select = function(rows)
     for (var s=0; s<len; s++)
       if (row == rows[s])
       {
+        if (first == null) first = tr;
+        last = tr;
         on = true;
         selected.push(view.m_rows.get(row));
         break;
@@ -588,6 +686,18 @@ fan.fwt.TableSelection.prototype.select = function(rows)
     tr.className = on ? "selected" : "";
     tr.firstChild.firstChild.checked = on;
   }
+
+  if (first != null && first == last)
+  {
+    var div = tbody.parentNode.parentNode;
+    var et = first.offsetTop;
+    var eh = first.offsetHeight;
+    var cs = div.scrollTop;
+    var ch = div.offsetHeight;
+    if (et < cs) first.scrollIntoView(true);
+    else if ((et+eh) > (cs+ch)) first.scrollIntoView(false);
+  }
+
   selected.sort();
   return fan.sys.List.make(fan.sys.Int.$type, selected);
 }
@@ -612,7 +722,7 @@ fan.fwt.TableSelection.prototype.notify = function(primaryIndex)
 fan.fwt.TableSupport = fan.sys.Obj.$extend(fan.sys.Obj);
 fan.fwt.TableSupport.prototype.$ctor = function(table) { this.table = table; }
 
-fan.fwt.TableSupport.prototype.popup = function()
+fan.fwt.TableSupport.prototype.popup = function(e)
 {
   var $this = this;
   var table = this.table;
@@ -657,41 +767,45 @@ fan.fwt.TableSupport.prototype.popup = function()
 
   if (table.view().numRows() == 0) xport.enabled$(false);
 
+  // clear selection
+  window.getSelection().removeAllRanges();
+
+  var dis  = table.peer.posOnDisplay(table);
+  var mx   = e.clientX - dis.m_x;
+  var my   = e.clientY - dis.m_y;
+
+  // open menu
   var menu = fan.fwt.Menu.make();
   menu.add(selectAll);
   menu.add(selectNone);
   menu.add(xport);
-  menu.open(table, fan.gfx.Point.make(0, 23));
+  menu.open(table, fan.gfx.Point.make(mx, my));
 }
 
 fan.fwt.TableSupport.prototype.exportTable = function()
 {
-  // build csv str
-  var str = "";
-  var model = this.table.model();
+  var buf = fan.sys.StrBuf.make();
+  var csv = fan.util.CsvOutStream.make(buf.out());
+
   // headers
-  for (var c=0; c<model.numCols(); c++)
-  {
-    if (c>0) str += ",";
-    str += this.escape(model.header(c));
-  }
-  str += "\n";
+  var model = this.table.model();
+  var row   = fan.sys.List.make(fan.sys.Str.$type);
+  for (var c=0; c<model.numCols(); c++) row.add(model.header(c));
+  csv.writeRow(row);
+
   // rows
   for (var r=0; r<model.numRows(); r++)
   {
-    for (var c=0; c<model.numCols(); c++)
-    {
-      if (c>0) str += ",";
-      str += this.escape(model.text(c, r));
-    }
-    str += "\n";
+    row.clear();
+    for (var c=0; c<model.numCols(); c++) row.add(model.text(c, r));
+    csv.writeRow(row);
   }
 
   // show in widget
   var text = fan.fwt.Text.make();
   text.m_multiLine = true;
   text.m_prefRows = 20;
-  text.text$(str);
+  text.text$(buf.toStr());
 
   var cons = fan.fwt.ConstraintPane.make();
   cons.m_minw = 650;
@@ -704,17 +818,3 @@ fan.fwt.TableSupport.prototype.exportTable = function()
   dlg.commands$(fan.sys.List.make(fan.sys.Obj.$type, [fan.fwt.Dialog.ok()]));
   dlg.open();
 }
-
-fan.fwt.TableSupport.prototype.escape = function(str)
-{
-  // convert " to ""
-  str = str.replace(/\"/g, "\"\"");
-
-  // check if need to wrap in quotes
-  var wrap = str.search(/[,\n\" ]/) != -1;
-  if (wrap) str = "\"" + str + "\"";
-
-  return str;
-}
-
-

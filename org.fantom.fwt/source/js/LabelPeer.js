@@ -10,7 +10,10 @@
  * LabelPeer.
  */
 fan.fwt.LabelPeer = fan.sys.Obj.$extend(fan.fwt.WidgetPeer);
-fan.fwt.LabelPeer.prototype.$ctor = function(self) {}
+fan.fwt.LabelPeer.prototype.$ctor = function(self)
+{
+  this.m_enabledColor = "#000";
+}
 
 fan.fwt.LabelPeer.prototype.m_text = "";
 fan.fwt.LabelPeer.prototype.text   = function(self) { return this.m_text; }
@@ -81,13 +84,18 @@ fan.fwt.LabelPeer.prototype.sync = function(self)
     this.rebuild(self);
     this.needRebuild = false;
   }
+
+  var i = this.m_image==null ? 0 : 1;
+  var text = this.elem.childNodes[i];
+  if (text != null && this.m_fg == null)
+    text.style.color = this.m_enabled ? this.m_enabledColor : "#999";
+
   if (this.$softClip(self))
   {
-    var i = this.m_image==null ? 0 : 1;
-    var text = this.elem.childNodes[i];
     if (this.m_size.m_w > 0) // skip if prefSize not calc yet
       text.style.width = this.m_size.m_w + "px";
   }
+
   fan.fwt.WidgetPeer.prototype.sync.call(this, self);
 }
 
@@ -98,6 +106,7 @@ fan.fwt.LabelPeer.prototype.rebuild = function(self)
   var uri  = this.$uri(self);  // uri if applicable
   var text = null;             // text node
   var img  = null;             // img node
+  var $this = this;
 
   // remove old subtree
   while (parent.firstChild != null)
@@ -117,6 +126,8 @@ fan.fwt.LabelPeer.prototype.rebuild = function(self)
     {
       img = document.createElement("a");
       img.href = uri.uri;
+      if (uri.target) img.target = uri.target;
+      img.onclick = function() { $this.$onBeforeUri(self) };
     }
     img.style.display = "inline-block";
     img.style.verticalAlign = "middle";
@@ -145,6 +156,7 @@ fan.fwt.LabelPeer.prototype.rebuild = function(self)
     {
       text = document.createElement("a");
       text.href = uri.uri;
+      text.onclick = function() { $this.$onBeforeUri(self) };
       if (uri.target) text.target = uri.target;
       switch (uri.underline)
       {
@@ -200,26 +212,10 @@ fan.fwt.LabelPeer.prototype.rebuild = function(self)
   var override = this.$style(self);
   if (override != null)
   {
-    if (img != null)
-    {
-      s = img.style;
-      for (var k in override.keyMap)
-      {
-        var key = override.keyMap[k];
-        var val = override.valMap[k];
-        s.setProperty(key, val, "");
-      }
-    }
-    if (text != null)
-    {
-      s = text.style;
-      for (var k in override.keyMap)
-      {
-        var key = override.keyMap[k];
-        var val = override.valMap[k];
-        s.setProperty(key, val, "");
-      }
-    }
+    var color = override.get("color");
+    if (color != null) this.m_enabledColor = color;
+    if (img   != null) fan.fwt.WidgetPeer.applyStyle(img, override);
+    if (text  != null) fan.fwt.WidgetPeer.applyStyle(text, override);
   }
 }
 
@@ -239,5 +235,5 @@ fan.fwt.LabelPeer.prototype.$style = function(self) { return null; }
 // { uri:<encoded-uri>, underline:<css-underline>" }
 fan.fwt.LabelPeer.prototype.$uri = function(self) { return null; }
 
-
-
+// Backdoor hook to reuse Label for hyperlinks
+fan.fwt.LabelPeer.prototype.$onBeforeUri = function(self) {}

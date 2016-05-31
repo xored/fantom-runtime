@@ -21,7 +21,7 @@ fan.fwt.TabPeer.prototype.image = function(self) { return this.m_image; }
 fan.fwt.TabPeer.prototype.image$ = function(self, val)
 {
   this.m_image = val;
-  fan.fwt.FwtEnvPeer.loadImage(val, self)
+  if (val != null) fan.fwt.FwtEnvPeer.loadImage(val, self);
 }
 
 fan.fwt.TabPeer.prototype.m_$defCursor = "default";
@@ -40,6 +40,13 @@ fan.fwt.TabPeer.prototype.sync = function(self)
   {
     $self.m_parent.peer.m_selectedIndex = $self.peer.index;
     $self.m_parent.relayout();
+
+    var evt  = fan.fwt.Event.make();
+    evt.m_id = fan.fwt.EventId.m_select;
+    evt.m_widget = self;
+    evt.m_index  = $self.peer.index;
+    evt.m_data   = $self;
+    $self.m_parent.onSelect().fire(evt);
   }
 
   var css = elem.style;
@@ -47,9 +54,9 @@ fan.fwt.TabPeer.prototype.sync = function(self)
   css.border  = "1px solid #404040";
   css.font = fan.fwt.WidgetPeer.fontToCss(fan.fwt.DesktopPeer.$sysFont);
   if (selected) css.borderBottom = "1px solid #eee";
+  css.webkitBorderRadius = "5px 5px 0 0";
   css.MozBorderRadius = "5px 5px 0 0";
-  css.webkitBorderTopLeftRadius  = "5px";
-  css.webkitBorderTopRightRadius = "5px";
+  css.borderRadius = "5px 5px 0 0";
 
   if (selected)
   {

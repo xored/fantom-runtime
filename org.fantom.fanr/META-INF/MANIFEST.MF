@@ -1,0 +1,9 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Fantom Repository Manager
+Bundle-SymbolicName: org.fantom.fanr;singleton:=true
+Bundle-Version: 1.0.68.qualifier
+Require-Bundle: org.fantom.sys;bundle-version="1.0.68",
+ org.fantom.concurrent;bundle-version="1.0.68",
+ org.fantom.util;bundle-version="1.0.68",
+ org.fantom.web;bundle-version="1.0.68"
