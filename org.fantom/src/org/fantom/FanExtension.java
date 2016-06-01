@@ -35,7 +35,7 @@ public class FanExtension implements IExecutableExtension,
 			}
 			final Object result = FantomVM.create(type);
 			if (FantomVM.DEBUG) {
-				System.out.println("FanExtension created " + result);
+				System.out.println("FanExtension created " + type + " result -> " + result);
 			}
 			if (result instanceof IExecutableExtension) {
 				((IExecutableExtension) result).setInitializationData(
