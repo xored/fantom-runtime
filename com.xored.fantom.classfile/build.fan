@@ -5,7 +5,7 @@ class Build : build::BuildPod
   {
     podName = "javaBytecode"
     summary = ""
-    srcDirs = [`fan/`, `fan/java/`, `fan/classfile/`, `fan/classfile/attributes/`, `examples/`]
+    srcDirs = [`examples/`, `fan/`, `fan/classfile/`, `fan/classfile/attributes/`, `fan/java/`]
     depends = ["sys 1.0"]
     outPodDir = `./`
   }
