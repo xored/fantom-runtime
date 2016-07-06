@@ -1,7 +1,8 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: Fantom inet pod
+Bundle-Name: Fantom core pod Inet
 Bundle-SymbolicName: org.fantom.inet;singleton:=true
 Bundle-Version: 1.0.68.qualifier
 Require-Bundle: org.fantom.sys;bundle-version="1.0.68",
  org.fantom.concurrent;bundle-version="1.0.68"
+Bundle-Vendor: Xored software, Inc.

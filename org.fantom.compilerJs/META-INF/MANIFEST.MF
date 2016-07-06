@@ -1,7 +1,8 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: CompilerJs
+Bundle-Name: Fantom core pod CompilerJs
 Bundle-SymbolicName: org.fantom.compilerJs;singleton:=true
 Bundle-Version: 1.0.68.qualifier
 Require-Bundle: org.fantom.sys;bundle-version="1.0.68",
  org.fantom.compiler;bundle-version="1.0.68"
+Bundle-Vendor: Xored software, Inc.

@@ -1,13 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feature
       id="org.fantom"
-      label="Fantom Runtime"
+      label="F4 Fantom Runtime"
       version="1.0.68.qualifier"
-      provider-name="xored software, Inc."
+      provider-name="Xored software, Inc."
       plugin="org.fantom">
 
-   <description>
-      Fantom OSGi runtime
+   <description url="https://github.com/xored/fantom-runtime">
+      Core Fantom pods bundled as individual eclipse plugins.
+
+This Fantom runtime is used internally by F4 IDE to run plugins and compile Fantom code.
    </description>
 
    <copyright url="%copyrightURL">

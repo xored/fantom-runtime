@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: Fandoc pod
+Bundle-Name: Fantom core pod Fandoc
 Bundle-SymbolicName: org.fantom.fandoc;singleton:=true
 Bundle-Version: 1.0.68.qualifier
-Bundle-Vendor: Fantom.org
+Bundle-Vendor: Xored software, Inc.
 Require-Bundle: org.fantom.sys;bundle-version="1.0.68"

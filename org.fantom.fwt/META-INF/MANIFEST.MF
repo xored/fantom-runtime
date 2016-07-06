@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: Fwt
+Bundle-Name: Fantom core pod Fwt
 Bundle-SymbolicName: org.fantom.fwt;singleton:=true
 Bundle-Version: 1.0.68.qualifier
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
@@ -9,3 +9,4 @@ Require-Bundle: org.eclipse.swt,
  org.fantom.concurrent;bundle-version="1.0.68",
  org.fantom.gfx;bundle-version="1.0.68"
 Export-Package: org.fantom.fwt.util
+Bundle-Vendor: Xored software, Inc.

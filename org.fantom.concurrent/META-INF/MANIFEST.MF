@@ -1,6 +1,7 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: Concurrent
+Bundle-Name: Fantom core pod Concurrent
 Bundle-SymbolicName: org.fantom.concurrent;singleton:=true
 Bundle-Version: 1.0.68.qualifier
 Require-Bundle: org.fantom.sys;bundle-version="1.0.68"
+Bundle-Vendor: Xored software, Inc.
