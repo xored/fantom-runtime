@@ -9,3 +9,4 @@ Require-Bundle: org.eclipse.swt,
  org.fantom.concurrent;bundle-version="1.0.68",
  org.fantom.gfx;bundle-version="1.0.68"
 Export-Package: org.fantom.fwt.util
+Bundle-Vendor: Xored software, Inc.

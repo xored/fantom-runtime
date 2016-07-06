@@ -4,3 +4,4 @@ Bundle-Name: Fantom util pod
 Bundle-SymbolicName: org.fantom.util;singleton:=true
 Bundle-Version: 1.0.68.qualifier
 Require-Bundle: org.fantom.sys;bundle-version="1.0.68"
+Bundle-Vendor: Xored software, Inc.

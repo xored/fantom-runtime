@@ -3,7 +3,7 @@
       id="org.fantom"
       label="Fantom Runtime"
       version="1.0.68.qualifier"
-      provider-name="xored software, Inc."
+      provider-name="Xored software, Inc."
       plugin="org.fantom">
 
    <description>

@@ -5,3 +5,4 @@ Bundle-SymbolicName: org.fantom.compilerJava;singleton:=true
 Bundle-Version: 1.0.68.qualifier
 Require-Bundle: org.fantom.sys;bundle-version="1.0.68",
  org.fantom.compiler;bundle-version="1.0.68"
+Bundle-Vendor: Xored software, Inc.

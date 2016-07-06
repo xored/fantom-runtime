@@ -6,3 +6,4 @@ Bundle-Version: 1.0.68.qualifier
 Require-Bundle: org.fantom.sys;bundle-version="1.0.68",
  org.fantom.concurrent;bundle-version="1.0.68",
  org.fantom.inet;bundle-version="1.0.68"
+Bundle-Vendor: Xored software, Inc.
