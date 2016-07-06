@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: CompilerJava
+Bundle-Name: Fantom core pod CompilerJava
 Bundle-SymbolicName: org.fantom.compilerJava;singleton:=true
 Bundle-Version: 1.0.68.qualifier
 Require-Bundle: org.fantom.sys;bundle-version="1.0.68",
