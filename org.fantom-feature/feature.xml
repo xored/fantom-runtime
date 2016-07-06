@@ -6,8 +6,10 @@
       provider-name="Xored software, Inc."
       plugin="org.fantom">
 
-   <description>
-      Fantom OSGi runtime
+   <description url="https://github.com/xored/fantom-runtime">
+      Fantom Runtime
+Used internally by F4 to compile Fantom code and execute eclipse
+plugins written in Fantom.
    </description>
 
    <copyright url="%copyrightURL">
