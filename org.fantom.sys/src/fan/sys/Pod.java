@@ -251,6 +251,7 @@ public class Pod
     if (name.equals("reloadList")) return reloadList();
     if (name.equals("reload")) return reload();
     if (name.equals("classLoader")) return classLoader;
+    if (name.equals("loadFile")) return loadFile();
     return super.trap(name, args);
   }
 
@@ -258,7 +259,7 @@ public class Pod
 // Constructor
 //////////////////////////////////////////////////////////////////////////
 
-  public Pod(FPod fpod, Pod[] dependPods)
+  Pod(FPod fpod, Pod[] dependPods)
   {
     this.name = fpod.podName;
     this.classLoader = new FanClassLoader(this);
@@ -400,6 +401,18 @@ public class Pod
         filesMap.put(f.uri(), f);
       }
     }
+  }
+
+  public fan.sys.File loadFile()
+  {
+    if (loadFile == null)
+    {
+      if (fpod == null) return null;
+      java.io.File jfile = fpod.loadFile();
+      if (jfile == null) return null;
+      loadFile = new LocalFile(jfile).normalize();
+    }
+    return (fan.sys.File)loadFile;
   }
 
 //////////////////////////////////////////////////////////////////////////
@@ -559,21 +572,6 @@ public class Pod
     throw UnknownTypeErr.make(podName + "::" + typeName);
   }
 
-  public static HashMap storePodsCache()
-  {
-    synchronized(podsByName) {
-      HashMap copy = new HashMap(podsByName);
-      return copy;
-    }
-  }
-  public static void restorePodsCache(HashMap copy)
-  {
-    synchronized(podsByName) {
-      podsByName.clear();
-      podsByName.putAll(copy);
-    }
-  }
-
 //////////////////////////////////////////////////////////////////////////
 // Fields
 //////////////////////////////////////////////////////////////////////////
@@ -592,6 +590,7 @@ public class Pod
   ClassType[] types;
   HashMap typesByName;
   Class cls;
+  Object loadFile;
   List filesList;
   HashMap filesMap = new HashMap(11);
   Log log;

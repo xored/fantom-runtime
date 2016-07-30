@@ -151,7 +151,9 @@ public class BootEnv
     // attempt to initilize JLine and if we can't fallback to Java API
     if (!jlineInit())
     {
-      return System.console().readLine(msg);
+      java.io.Console console = System.console();
+      if (console == null) return promptStdIn(msg);
+      return console.readLine(msg);
     }
 
     // use reflection to call JLine ConsoleReader.readLine
@@ -172,7 +174,9 @@ public class BootEnv
     // attempt to initilize JLine and if we can't fallback to Java API
     if (!jlineInit())
     {
-      char[] pass = System.console().readPassword(msg);
+      java.io.Console console = System.console();
+      if (console == null) return promptStdIn(msg);
+      char[] pass = console.readPassword(msg);
       if (pass == null) return null;
       return new String(pass);
     }
@@ -208,6 +212,19 @@ public class BootEnv
       }
     }
     return !(jline instanceof Throwable);
+  }
+
+  private String promptStdIn(String msg)
+  {
+    try
+    {
+      out().print(msg).flush();
+      return new java.io.BufferedReader(new java.io.InputStreamReader(System.in)).readLine();
+    }
+    catch (Exception e)
+    {
+      throw Err.make(e);
+    }
   }
 
 //////////////////////////////////////////////////////////////////////////
@@ -341,7 +358,7 @@ public class BootEnv
     }
   }
 
-  public Class loadJavaClass(String className, String callingPod)
+  public Class loadJavaClass(String className)
     throws Exception
   {
     // handle primitives, these don't get handled by URLClassLoader
@@ -360,13 +377,7 @@ public class BootEnv
     }
 
     // route to extention classloader
-    return getJavaClassLoader(callingPod).loadClass(className);
-  }
-
-  @Override
-  public ClassLoader getJavaClassLoader(String pod)
-  {
-    return FanClassLoader.extClassLoader;
+    return FanClassLoader.extClassLoader.loadClass(className);
   }
 
 //////////////////////////////////////////////////////////////////////////
