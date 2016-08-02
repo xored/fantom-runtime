@@ -2,8 +2,8 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Fantom core pod Gfx
 Bundle-SymbolicName: org.fantom.gfx;singleton:=true
-Bundle-Version: 1.0.68.qualifier
+Bundle-Version: 1.0.69.qualifier
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
-Require-Bundle: org.fantom.sys;bundle-version="1.0.68",
- org.fantom.concurrent;bundle-version="1.0.68"
+Require-Bundle: org.fantom.sys;bundle-version="1.0.69",
+ org.fantom.concurrent;bundle-version="1.0.69"
 Bundle-Vendor: Xored software, Inc.
