@@ -2,8 +2,8 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Fantom core pod Web
 Bundle-SymbolicName: org.fantom.web;singleton:=true
-Bundle-Version: 1.0.69.qualifier
-Require-Bundle: org.fantom.sys;bundle-version="1.0.69",
- org.fantom.concurrent;bundle-version="1.0.69",
- org.fantom.inet;bundle-version="1.0.69"
+Bundle-Version: 1.0.71.qualifier
+Require-Bundle: org.fantom.sys;bundle-version="1.0.71",
+ org.fantom.concurrent;bundle-version="1.0.71",
+ org.fantom.inet;bundle-version="1.0.71"
 Bundle-Vendor: Xored software, Inc.
