@@ -83,10 +83,18 @@ public class BootEnv
     {
       return java.net.InetAddress.getLocalHost().getHostName();
     }
-    catch (Throwable e)
+    catch (Throwable e) {}
+
+    try
     {
-      return "unknown";
+      // fallbacks if DNS resolution fails
+      String s;
+      s = System.getenv("HOSTNAME");     if (s != null) return s;
+      s = System.getenv("FAN_HOSTNAME"); if (s != null) return s;
     }
+    catch (Throwable e) {}
+
+    return "unknown";
   }
 
   private static String initUser()
@@ -358,7 +366,7 @@ public class BootEnv
     }
   }
 
-  public Class loadJavaClass(String className, String callingPod)
+  public Class loadJavaClass(String className)
     throws Exception
   {
     // handle primitives, these don't get handled by URLClassLoader
@@ -377,13 +385,7 @@ public class BootEnv
     }
 
     // route to extention classloader
-    return getJavaClassLoader(callingPod).loadClass(className);
-  }
-
-  @Override
-  public ClassLoader getJavaClassLoader(String pod)
-  {
-    return FanClassLoader.extClassLoader;
+    return FanClassLoader.extClassLoader.loadClass(className);
   }
 
 //////////////////////////////////////////////////////////////////////////
