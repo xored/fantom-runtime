@@ -146,7 +146,7 @@ class JavaType : CType
 
   ** Classfile to use for loading
   const File? classfile
-  ** Modified for F4 to support content-assistance
+
   protected virtual Void load()
   {
     if (loaded) return

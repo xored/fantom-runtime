@@ -9,6 +9,6 @@
   </parent>
   <groupId>org.fantom-features</groupId>
   <artifactId>org.fantom</artifactId>
-  <version>1.0.69-SNAPSHOT</version>
+  <version>1.0.71-SNAPSHOT</version>
   <packaging>eclipse-feature</packaging>
 </project>
