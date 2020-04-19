@@ -115,7 +115,6 @@ public class PathFile
     try
     {
       Stream<PathFile> s = Files.list(this.path).filter(new Predicate<Path>() {
-        @Override
         public boolean test(Path child) {
           if (mode == 'd' && !Files.isDirectory(child)) return false;
           if (mode == 'f' && Files.isDirectory(child)) return false;
@@ -124,7 +123,6 @@ public class PathFile
         }
       })
       .map(new Function<Path, PathFile>() {
-        @Override
         public PathFile apply(Path path) { return new PathFile(path); }
       });
       return Interop.toFan(s, Sys.PathFileType);
