@@ -31,7 +31,6 @@ class Build : BuildPod
     docSrc     = true
     dependsDir = devHomeDir.uri + `lib/fan/`
     outPodDir  = `./`
-    outDir     = `./`
     index      = ["compiler.bridge.java": "compilerJava::JavaBridge"]
   }
 }
