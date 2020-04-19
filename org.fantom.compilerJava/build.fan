@@ -17,7 +17,7 @@ class Build : BuildPod
   new make()
   {
     podName    = "compilerJava"
-	version	   = Version("1.0.71")
+	version	   = Version("1.0.74")
     summary    = "Compiler FFI Plugin for Java"
     meta       = ["org.name":     "Fantom",
                   "org.uri":      "http://fantom.org/",

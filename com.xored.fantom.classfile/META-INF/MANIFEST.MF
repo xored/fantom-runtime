@@ -3,5 +3,5 @@ Bundle-ManifestVersion: 2
 Bundle-Name: F4 Classfile
 Bundle-SymbolicName: com.xored.fantom.classfile;singleton:=true
 Bundle-Version: 1.0.0.qualifier
-Require-Bundle: org.fantom.sys;bundle-version="1.0.71"
+Require-Bundle: org.fantom.sys;bundle-version="1.0.74"
 Bundle-Vendor: Xored software, Inc.
