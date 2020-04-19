@@ -53,6 +53,8 @@ public abstract class Env
 
   public final String runtime() { return "java"; }
 
+  public final long javaVersion() { return Sys.javaVersion; }
+
   public final long idHash(Object obj) { return System.identityHashCode(obj); }
 
 //////////////////////////////////////////////////////////////////////////
@@ -158,6 +160,11 @@ public abstract class Env
     return index.keys();
   }
 
+  public List indexPodNames(String key)
+  {
+    return index.podNames(key);
+  }
+
   public Map props(Pod pod, Uri uri, Duration maxAge)
   {
     return props.get(pod, uri, maxAge);
@@ -222,15 +229,10 @@ public abstract class Env
    * Load the Java class of a FFI JavaType.
    * Default implementation delegates to parent.
    */
-  public Class loadJavaClass(String className, String callingPod)
+  public Class loadJavaClass(String className)
     throws Exception
   {
-    return parent.loadJavaClass(className, callingPod);
-  }
-
-  public ClassLoader getJavaClassLoader(String callingPod) 
-  {
-    return parent.getJavaClassLoader(callingPod);
+    return parent.loadJavaClass(className);
   }
 
   /**

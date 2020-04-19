@@ -27,7 +27,7 @@ class Build : BuildPod
                   "vcs.name":     "Mercurial",
                   "vcs.uri":      "http://hg.fantom.org/fan-1.0/"]
     depends    = ["sys 1.0", "compiler 1.0"]
-    srcDirs    = [`fan/`, `fan/dasm/`]
+    srcDirs    = [`fan/`, `fan/cp/`, `fan/dasm/`]
     docSrc     = true
     dependsDir = devHomeDir.uri + `lib/fan/`
     outPodDir  = `./`

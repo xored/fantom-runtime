@@ -8,7 +8,7 @@
 //
 
 using compiler
-using [java] java.lang::Class
+using [java] java.lang
 using [java] java.lang.reflect::Constructor as JCtor
 using [java] java.lang.reflect::Field as JField
 using [java] java.lang.reflect::Method as JMethod
