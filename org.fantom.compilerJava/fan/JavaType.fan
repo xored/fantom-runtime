@@ -37,7 +37,7 @@ class JavaType : CType
     this.arrayOf   = of
   }
 
-  private new init(JavaPod pod, Str name)
+  protected new init(JavaPod pod, Str name)
   {
     this.pod    = pod
     this.name   = name
@@ -77,7 +77,7 @@ class JavaType : CType
 
   override once CType toListOf() { ListType(this) }
 
-  override Str:CSlot slots := [:] { get { load; return &slots } private set }
+  override Str:CSlot slots := [:] { get { load; return &slots } protected set }
 
   override once COperators operators() { COperators(this) }
 
@@ -148,7 +148,7 @@ class JavaType : CType
   ** Classfile to use for loading
   const File? classfile
 
-  private Void load()
+  protected virtual Void load()
   {
     if (loaded) return
     slots := Str:CSlot[:]
@@ -323,6 +323,6 @@ class JavaType : CType
 // Fields
 //////////////////////////////////////////////////////////////////////////
 
-  private Bool loaded := false
+  protected Bool loaded := false
 }
 
