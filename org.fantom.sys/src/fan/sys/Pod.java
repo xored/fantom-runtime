@@ -269,7 +269,7 @@ public class Pod
 // Constructor
 //////////////////////////////////////////////////////////////////////////
 
-  Pod(FPod fpod, Pod[] dependPods)
+  public Pod(FPod fpod, Pod[] dependPods)
   {
     this.name = fpod.podName;
     this.classLoader = new FanClassLoader(this);
@@ -628,6 +628,21 @@ public class Pod
 
     // lost cause
     throw UnknownTypeErr.make(podName + "::" + typeName);
+  }
+
+  public static HashMap storePodsCache()
+  {
+    synchronized(podsByName) {
+      HashMap copy = new HashMap(podsByName);
+      return copy;
+    }
+  }
+  public static void restorePodsCache(HashMap copy)
+  {
+    synchronized(podsByName) {
+      podsByName.clear();
+      podsByName.putAll(copy);
+    }
   }
 
 //////////////////////////////////////////////////////////////////////////
