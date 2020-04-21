@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <site>
-   <feature url="features/org.fantom_1.0.71.qualifier.jar" id="org.fantom" version="1.0.71.qualifier"/>
+   <feature url="features/org.fantom_1.0.74.qualifier.jar" id="org.fantom" version="1.0.74.qualifier"/>
 </site>
