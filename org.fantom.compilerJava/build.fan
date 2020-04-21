@@ -17,7 +17,7 @@ class Build : BuildPod
   new make()
   {
     podName    = "compilerJava"
-	version	   = Version("1.0.71")
+	version	   = Version("1.0.74")
     summary    = "Compiler FFI Plugin for Java"
     meta       = ["org.name":     "Fantom",
                   "org.uri":      "http://fantom.org/",
@@ -27,11 +27,10 @@ class Build : BuildPod
                   "vcs.name":     "Mercurial",
                   "vcs.uri":      "http://hg.fantom.org/fan-1.0/"]
     depends    = ["sys 1.0", "compiler 1.0"]
-    srcDirs    = [`fan/`, `fan/dasm/`]
+    srcDirs    = [`fan/`, `fan/cp/`, `fan/dasm/`]
     docSrc     = true
     dependsDir = devHomeDir.uri + `lib/fan/`
     outPodDir  = `./`
-    outDir     = `./`
     index      = ["compiler.bridge.java": "compilerJava::JavaBridge"]
   }
 }
