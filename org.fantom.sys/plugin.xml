@@ -5,6 +5,6 @@
       <pod location="/lib/fan/sys.pod" name="sys"/>
    </extension>
    <extension point="org.fantom.install">
-      <install name="Fantom 1.0.74" class="org.fantom.internal.sys.FantomInstall"/>
+      <install name="Fantom 1.0.76" class="org.fantom.internal.sys.FantomInstall"/>
    </extension>
 </plugin>
