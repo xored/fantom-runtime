@@ -269,7 +269,7 @@ public class Pod
 // Constructor
 //////////////////////////////////////////////////////////////////////////
 
-  public Pod(FPod fpod, Pod[] dependPods)
+  Pod(FPod fpod, Pod[] dependPods)
   {
     this.name = fpod.podName;
     this.classLoader = new FanClassLoader(this);
@@ -460,6 +460,54 @@ public class Pod
     return Env.cur().locale(this, key, def);
   }
 
+  public static List flattenDepends(List pods)
+  {
+    Map acc = new Map(Sys.StrType, Sys.PodType);
+    for (int i=0; i<pods.sz(); ++i)
+      doFlattenDepends(acc, (Pod)pods.get(i));
+    return acc.vals();
+  }
+
+  private static void doFlattenDepends(Map acc, Pod pod)
+  {
+    if (acc.get(pod.name()) != null) return;
+    acc.set(pod.name(), pod);
+    List depends = pod.depends();
+    for (int i=0; i<depends.sz(); ++i)
+    {
+      Depend d = (Depend)depends.get(i);
+      doFlattenDepends(acc, Pod.find(d.name()));
+    }
+  }
+
+  public static List orderByDepends(List pods)
+  {
+    List left = pods.dup().sort();
+    List ordered = List.make(Sys.PodType, pods.size());
+    while (!left.isEmpty())
+    {
+      // find next pod that doesn't have depends in left list
+      int i;
+      for (i = 0; i<left.sz(); ++i)
+        if (noDependsInLeft(left, (Pod)left.get(i))) break;
+      ordered.add(left.removeAt(i));
+    }
+    return ordered;
+  }
+
+  private static boolean noDependsInLeft(List left, Pod p)
+  {
+    List depends = p.depends();
+    for (int i=0; i<depends.sz(); ++i)
+    {
+      Depend d = (Depend)depends.get(i);
+      for (int j=0; j<left.sz(); ++j)
+        if (d.name().equals(((Pod)left.get(j)).name()))
+          return false;
+    }
+    return true;
+  }
+
 //////////////////////////////////////////////////////////////////////////
 // Load
 //////////////////////////////////////////////////////////////////////////
@@ -580,21 +628,6 @@ public class Pod
 
     // lost cause
     throw UnknownTypeErr.make(podName + "::" + typeName);
-  }
-
-  public static HashMap storePodsCache()
-  {
-    synchronized(podsByName) {
-      HashMap copy = new HashMap(podsByName);
-      return copy;
-    }
-  }
-  public static void restorePodsCache(HashMap copy)
-  {
-    synchronized(podsByName) {
-      podsByName.clear();
-      podsByName.putAll(copy);
-    }
   }
 
 //////////////////////////////////////////////////////////////////////////

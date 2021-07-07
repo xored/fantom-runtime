@@ -81,16 +81,17 @@ public class BootEnv
   {
     try
     {
-      return java.net.InetAddress.getLocalHost().getHostName();
+      // use environment vars first to avoid DNS calls
+      String s;
+      s = System.getenv("FAN_HOSTNAME"); if (s != null) return s;
+      s = System.getenv("HOSTNAME");     if (s != null) return s;
     }
     catch (Throwable e) {}
 
     try
     {
-      // fallbacks if DNS resolution fails
-      String s;
-      s = System.getenv("HOSTNAME");     if (s != null) return s;
-      s = System.getenv("FAN_HOSTNAME"); if (s != null) return s;
+      // this will block if the network is down
+      return java.net.InetAddress.getLocalHost().getHostName();
     }
     catch (Throwable e) {}
 
@@ -366,7 +367,7 @@ public class BootEnv
     }
   }
 
-  public Class loadJavaClass(String className, String callingPod)
+  public Class loadJavaClass(String className)
     throws Exception
   {
     // handle primitives, these don't get handled by URLClassLoader
@@ -385,13 +386,7 @@ public class BootEnv
     }
 
     // route to extention classloader
-    return getJavaClassLoader(callingPod).loadClass(className);
-  }
-
-  @Override
-  public ClassLoader getJavaClassLoader(String pod)
-  {
-    return FanClassLoader.extClassLoader;
+    return FanClassLoader.extClassLoader.loadClass(className);
   }
 
 //////////////////////////////////////////////////////////////////////////

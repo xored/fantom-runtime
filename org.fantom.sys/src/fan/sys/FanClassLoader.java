@@ -29,7 +29,7 @@ public class FanClassLoader
 
   public FanClassLoader(Pod  pod)
   {
-    super(new URL[0], pod.name == "sys" ? FanClassLoader.class.getClassLoader() : Env.cur().getJavaClassLoader(pod.name));
+    super(new URL[0], extClassLoader);
     try
     {
       this.pod = pod;
@@ -113,7 +113,7 @@ public class FanClassLoader
       String s = e.toString();
       if (s.contains("swt"))
       {
-        String msg = "cannot load SWT library; see http://fantom.org/doc/docTools/Setup.html#swt";
+        String msg = "cannot load SWT library; see https://fantom.org/doc/docTools/Setup.html#swt";
         System.out.println("\nERROR: " + msg + "\n");
         e = new NoClassDefFoundError(e.getMessage() + ": " + msg);
       }

@@ -215,9 +215,9 @@ public abstract class Env
 
   /**
    * Load the Java class representations of a Fantom type:
-   *   - Fantom class => [class]
-   *   - Fantom mixin => [interface, body class]
-   *   - Fantom Err class => [class, val class]
+   *   - Fantom class =&gt; [class]
+   *   - Fantom mixin =&gt; [interface, body class]
+   *   - Fantom Err class =&gt; [class, val class]
    * Default implementation delegates to parent.
    */
   public Class[] loadTypeClasses(ClassType t)
@@ -229,15 +229,10 @@ public abstract class Env
    * Load the Java class of a FFI JavaType.
    * Default implementation delegates to parent.
    */
-  public Class loadJavaClass(String className, String callingPod)
+  public Class loadJavaClass(String className)
     throws Exception
   {
-    return parent.loadJavaClass(className, callingPod);
-  }
-
-  public ClassLoader getJavaClassLoader(String callingPod) 
-  {
-    return parent.getJavaClassLoader(callingPod);
+    return parent.loadJavaClass(className);
   }
 
   /**
