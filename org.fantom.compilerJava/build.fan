@@ -17,15 +17,15 @@ class Build : BuildPod
   new make()
   {
     podName    = "compilerJava"
-	version	   = Version("1.0.74")
+    version    = Version("1.0.76")
     summary    = "Compiler FFI Plugin for Java"
     meta       = ["org.name":     "Fantom",
-                  "org.uri":      "http://fantom.org/",
+                  "org.uri":      "https://fantom.org/",
                   "proj.name":    "Fantom Core",
-                  "proj.uri":     "http://fantom.org/",
+                  "proj.uri":     "https://fantom.org/",
                   "license.name": "Academic Free License 3.0",
-                  "vcs.name":     "Mercurial",
-                  "vcs.uri":      "http://hg.fantom.org/fan-1.0/"]
+                  "vcs.name":     "Git",
+                  "vcs.uri":      "https://github.com/fantom-lang/fantom"]
     depends    = ["sys 1.0", "compiler 1.0"]
     srcDirs    = [`fan/`, `fan/cp/`, `fan/dasm/`]
     docSrc     = true

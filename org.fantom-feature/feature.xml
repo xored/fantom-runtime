@@ -2,7 +2,7 @@
 <feature
       id="org.fantom"
       label="F4 Fantom Runtime"
-      version="1.0.74.qualifier"
+      version="1.0.76.qualifier"
       provider-name="Xored software, Inc."
       plugin="org.fantom">
 
