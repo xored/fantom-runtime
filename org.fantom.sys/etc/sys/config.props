@@ -13,7 +13,7 @@
 runtime=java
 
 // Default depth of Err.trace used for stack tracing
-errTraceMaxDepth=25
+errTraceMaxDepth=50
 
 // Default timezone to use for VM - can be either the simple name
 // or the full name.  If not set explicitly, then the we will
@@ -41,7 +41,7 @@ errTraceMaxDepth=25
 // information such as the LocalVariableTable for debuggers
 // This property can only be configured by bootstrap homeDir.
 
-//debug=true
+debug=true
 
 //////////////////////////////////////////////////////////////////////////
 // Java Runtime
