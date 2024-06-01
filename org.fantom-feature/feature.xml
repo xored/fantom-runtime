@@ -2,7 +2,7 @@
 <feature
       id="org.fantom"
       label="F4 Fantom Runtime"
-      version="1.0.76.qualifier"
+      version="1.0.80.qualifier"
       provider-name="Xored software, Inc."
       plugin="org.fantom">
 
@@ -22,6 +22,12 @@ This Fantom runtime is used internally by F4 IDE to run plugins and compile Fant
 
    <plugin
          id="org.fantom.compiler"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
+
+   <plugin
+         id="org.fantom.compilerEs"
          download-size="0"
          install-size="0"
          version="0.0.0"/>
@@ -52,18 +58,6 @@ This Fantom runtime is used internally by F4 IDE to run plugins and compile Fant
 
    <plugin
          id="org.fantom.fanr"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"/>
-
-   <plugin
-         id="org.fantom.fwt"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"/>
-
-   <plugin
-         id="org.fantom.gfx"
          download-size="0"
          install-size="0"
          version="0.0.0"/>

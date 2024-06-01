@@ -12,13 +12,12 @@
     <module>org.fantom-feature</module>
     <module>org.fantom-updatesite</module>
     <module>org.fantom.compiler</module>
+    <module>org.fantom.compilerEs</module>
     <module>org.fantom.compilerJava</module>
     <module>org.fantom.compilerJs</module>
     <module>org.fantom.concurrent</module>
     <module>org.fantom.fandoc</module>
     <module>org.fantom.fanr</module>
-    <module>org.fantom.fwt</module>
-    <module>org.fantom.gfx</module>
     <module>org.fantom.inet</module>
     <module>org.fantom.sys</module>
     <module>org.fantom.util</module>

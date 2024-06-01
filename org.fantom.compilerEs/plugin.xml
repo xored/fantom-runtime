@@ -4,9 +4,10 @@
    <extension
          point="org.fantom.pod">
       <pod
-            location="/gfx.pod"
-            name="gfx">
+            location="/compilerEs.pod"
+            name="compilerEs">
       </pod>
    </extension>
+
 
 </plugin>

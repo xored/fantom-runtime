@@ -1,4 +1,4 @@
-#! /usr/bin/env fan
+#! /usr/bin/env fansubstitute
 //
 // Copyright (c) 2008, Brian Frank and Andy Frank
 // Licensed under the Academic Free License version 3.0
@@ -17,7 +17,6 @@ class Build : BuildPod
   new make()
   {
     podName    = "compilerJava"
-    version    = Version("1.0.76")
     summary    = "Compiler FFI Plugin for Java"
     meta       = ["org.name":     "Fantom",
                   "org.uri":      "https://fantom.org/",
@@ -30,7 +29,8 @@ class Build : BuildPod
     srcDirs    = [`fan/`, `fan/cp/`, `fan/dasm/`]
     docSrc     = true
     dependsDir = devHomeDir.uri + `lib/fan/`
-    outPodDir  = `./`
+    outPodDir  = devHomeDir.uri + `lib/fan/`
     index      = ["compiler.bridge.java": "compilerJava::JavaBridge"]
   }
 }
+
