@@ -12,6 +12,7 @@
     <module>org.fantom-feature</module>
     <module>org.fantom-updatesite</module>
     <module>org.fantom.compiler</module>
+    <module>org.fantom.compilerEs</module>
     <module>org.fantom.compilerJava</module>
     <module>org.fantom.compilerJs</module>
     <module>org.fantom.concurrent</module>
