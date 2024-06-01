@@ -66,7 +66,7 @@ class ClassPath
   ** Build the class path as the aggregate of all packages in the given
   ** class libraries.
   **
-  new make(ClassLib[] libs)
+  private new make(ClassLib[] libs)
   {
     this.libs = libs
   }
