@@ -18,8 +18,6 @@
     <module>org.fantom.concurrent</module>
     <module>org.fantom.fandoc</module>
     <module>org.fantom.fanr</module>
-    <module>org.fantom.fwt</module>
-    <module>org.fantom.gfx</module>
     <module>org.fantom.inet</module>
     <module>org.fantom.sys</module>
     <module>org.fantom.util</module>

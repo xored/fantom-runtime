@@ -63,18 +63,6 @@ This Fantom runtime is used internally by F4 IDE to run plugins and compile Fant
          version="0.0.0"/>
 
    <plugin
-         id="org.fantom.fwt"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"/>
-
-   <plugin
-         id="org.fantom.gfx"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"/>
-
-   <plugin
          id="org.fantom.sys"
          download-size="0"
          install-size="0"
