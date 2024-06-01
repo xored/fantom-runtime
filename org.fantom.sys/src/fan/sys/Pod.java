@@ -9,6 +9,8 @@ package fan.sys;
 
 import java.lang.ref.*;
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.zip.*;
@@ -160,6 +162,14 @@ public class Pod
       // if null or doesn't exist then its a no go
       if (file == null || !file.exists()) throw UnknownPodErr.make(name);
 
+      // check if there is a staged file that needs to be installed
+      File staged = new File(file.getParentFile().getParentFile(), "install/" + file.getName());
+      if (staged.exists())
+      {
+        Log.get("sys").info("Installing  \"" + staged.getName() + "\" to " + file.getCanonicalFile());
+        Files.move(staged.toPath(), file.toPath(), StandardCopyOption.REPLACE_EXISTING);
+      }
+
       store = FStore.makeZip(file);
     }
 
@@ -235,9 +245,20 @@ public class Pod
     log.info("Pod reload: " + name);
 
     // close current zip file
+    this.close();
+
+    return this;
+  }
+
+  private Object close()
+  {
     try
     {
-      if (fpod.store != null) fpod.store.close();
+      if (fpod.store != null)
+      {
+        fpod.store.close();
+        fpod.store = null;
+      }
     }
     catch (Exception e)
     {
@@ -262,6 +283,7 @@ public class Pod
     if (name.equals("reload")) return reload();
     if (name.equals("classLoader")) return classLoader;
     if (name.equals("loadFile")) return loadFile();
+    if (name.equals("close")) return close();
     return super.trap(name, args);
   }
 
@@ -269,7 +291,7 @@ public class Pod
 // Constructor
 //////////////////////////////////////////////////////////////////////////
 
-  public Pod(FPod fpod, Pod[] dependPods)
+  Pod(FPod fpod, Pod[] dependPods)
   {
     this.name = fpod.podName;
     this.classLoader = new FanClassLoader(this);
@@ -628,21 +650,6 @@ public class Pod
 
     // lost cause
     throw UnknownTypeErr.make(podName + "::" + typeName);
-  }
-
-  public static HashMap storePodsCache()
-  {
-    synchronized(podsByName) {
-      HashMap copy = new HashMap(podsByName);
-      return copy;
-    }
-  }
-  public static void restorePodsCache(HashMap copy)
-  {
-    synchronized(podsByName) {
-      podsByName.clear();
-      podsByName.putAll(copy);
-    }
   }
 
 //////////////////////////////////////////////////////////////////////////
