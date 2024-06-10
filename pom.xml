@@ -16,6 +16,7 @@
     <module>org.fantom.compilerJava</module>
     <module>org.fantom.compilerJs</module>
     <module>org.fantom.concurrent</module>
+    <module>org.fantom.crypto</module>
     <module>org.fantom.fandoc</module>
     <module>org.fantom.fanr</module>
     <module>org.fantom.inet</module>
