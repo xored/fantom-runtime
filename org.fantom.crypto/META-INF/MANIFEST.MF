@@ -1,0 +1,7 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Fantom core pod Crypto
+Bundle-SymbolicName: org.fantom.crypto;singleton:=true
+Bundle-Version: 1.0.80.qualifier
+Require-Bundle: org.fantom.sys;bundle-version="1.0.80"
+Bundle-Vendor: Xored software, Inc.
