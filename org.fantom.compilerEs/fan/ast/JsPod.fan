@@ -7,6 +7,7 @@
 //
 
 using compiler
+using concurrent::Actor
 
 **
 ** JsPod
@@ -66,9 +67,13 @@ class JsPod : JsNode
     pods := (Pod[])pod.depends.mapNotNull |p->Pod?|
     {
       if (p.name.startsWith("[java]")) return null
-      return Pod.find(p.name)
+
+		// !PATCH! for compilation in F4 - SlimerDude, June 2024
+		// F4 needs to provide the pods - they are NOT part of the environment
+		return findPod(p.name)
     }
-    pods = Pod.orderByDepends(Pod.flattenDepends(pods))
+    pods = flattenDepends(pods)
+    pods = Pod.orderByDepends(pods)
     pods.each |depend|
     {
       if (depend.name == "sys") return
@@ -81,6 +86,32 @@ class JsPod : JsNode
     js.wl("// cjs require end")
     js.wl("const js = (typeof window !== 'undefined') ? window : global;")
   }
+	
+	
+	// !PATCH! for compilation in F4 - SlimerDude, June 2024
+	// Pod.flattenDepends() calls Pod.find() - which doesn't work for us
+	private static Pod[] flattenDepends(Pod[] pods) {
+		acc := Str:Pod[:]
+		pods.each { doFlattenDepends(acc, it) }
+		return acc.vals
+	}
+	private static Void doFlattenDepends(Str:Pod acc, Pod pod) {
+		if (acc.containsKey(pod.name)) return
+		acc[pod.name] = pod
+		pod.depends.each {
+			if (acc.containsKey(it.name) == false)
+				doFlattenDepends(acc, findPod(it.name))
+		}
+	}
+	// F4 needs to provide the pods - they are NOT part of the environment
+	private static Pod? findPod(Str podName) {
+		f4PodFn := Actor.locals["f4.compilerEs.podFn"] as |Str->Pod|
+		f4Pod   := f4PodFn?.call(podName)
+		if (f4Pod != null)
+			return f4Pod
+		// meh - failed!
+      return Pod.find(podName)	
+	}
 
   // private Void writeImports()
   // {

@@ -4,5 +4,6 @@ Bundle-Name: Fantom core pod CompilerEs
 Bundle-SymbolicName: org.fantom.compilerEs;singleton:=true
 Bundle-Version: 1.0.80.qualifier
 Require-Bundle: org.fantom.sys;bundle-version="1.0.80",
- org.fantom.compiler;bundle-version="1.0.80"
+ org.fantom.compiler;bundle-version="1.0.80",
+ org.fantom.concurrent;bundle-version="1.0.80"
 Bundle-Vendor: Xored software, Inc.

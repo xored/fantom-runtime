@@ -7,6 +7,7 @@
 //
 
 using compiler
+using concurrent::Actor
 
 class SourceMap
 {
@@ -164,7 +165,16 @@ class SourceMap
     {
       // check if file is within a pod
       uri := file.uri
-      pod := uri.scheme == "fan" ? Pod.find(uri.host, false) : null
+      pod := null as Pod
+		
+//      pod := uri.scheme == "fan" ? Pod.find(uri.host, false) : null
+		if (uri.scheme == "fan") {
+			// !PATCH! for compilation in F4 - SlimerDude, June 2024
+			// F4 needs to provide the pods - they are NOT part of the environment
+			f4PodFn := Actor.locals["f4.compilerEs.podFn"] as |Str->Pod|
+			f4Pod   := f4PodFn?.call(uri.host)
+			pod		 = f4Pod
+		}
 
       // check if this standard pod JS file
       Str? json := null
