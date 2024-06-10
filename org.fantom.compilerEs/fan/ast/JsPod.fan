@@ -26,7 +26,11 @@ class JsPod : JsNode
     // map native files by name
     c.jsFiles?.each |f| {
       // we expect ES javascript files in es/ directory
-      natives[f.name] = f.parent.parent.plus(`es/${f.name}`)
+      esFile := f.parent.parent.plus(`es/${f.name}`)
+
+      // not all these files exist, see https://fantom.org/forum/topic/2919
+      if (esFile.exists)
+        natives[f.name] = esFile
     }
 
     // find types to emit
