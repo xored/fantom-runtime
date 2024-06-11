@@ -17,6 +17,7 @@ class Build : BuildPod
   new make()
   {
     podName    = "compilerJava"
+    version    = Version("1.0.80")
     summary    = "Compiler FFI Plugin for Java"
     meta       = ["org.name":     "Fantom",
                   "org.uri":      "https://fantom.org/",
@@ -33,4 +34,3 @@ class Build : BuildPod
     index      = ["compiler.bridge.java": "compilerJava::JavaBridge"]
   }
 }
-

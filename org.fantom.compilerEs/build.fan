@@ -17,6 +17,7 @@ class Build : BuildPod
   new make()
   {
     podName = "compilerEs"
+    version = Version("1.0.80")
     summary = "Fantom to ECMAScript Compiler"
     meta    = ["org.name":     "Fantom",
                "org.uri":      "https://fantom.org/",
