@@ -22,7 +22,7 @@ public class EquinoxEnv extends Env {
 			pods.put(pod.getName(), pod); //gets all pods from plugins
 		}
 	}
-
+	
 	@Override
 	public fan.sys.File findPodFile(String name) {
 		if (jstub != null && jstub.containsKey(name))
