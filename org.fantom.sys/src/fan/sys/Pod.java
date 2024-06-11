@@ -11,6 +11,7 @@ import java.lang.ref.*;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.zip.*;
@@ -652,18 +653,50 @@ public class Pod
     throw UnknownTypeErr.make(podName + "::" + typeName);
   }
 
-  public static HashMap storePodsCache()
-  {
+  // ---- Called from F4's JStubGenerator
+
+  public static HashMap getCopyOfPodsByName() {
     synchronized(podsByName) {
       HashMap copy = new HashMap(podsByName);
       return copy;
     }
   }
-  public static void restorePodsCache(HashMap copy)
-  {
+
+  public static void setPodsByName(HashMap origPods) {
     synchronized(podsByName) {
-      podsByName.clear();
-      podsByName.putAll(copy);
+      // close all Pods that were only needed by JStub
+      // the origPods *should* only be those in F4's Runtime, hence different to Interpreter pods
+      // although it does mean we create stubs against our Runtime pods...!?
+      // - SlimerDude, July 2024
+      
+      // NOTE that closing a pod also removes it from podsByName
+      for (Object ref : new ArrayList(podsByName.values())) {
+        Pod newPod = (Pod) ((SoftReference) ref).get(); 
+        SoftReference oldRef = (SoftReference) origPods.get(newPod.name());
+        
+        if (oldRef == null)
+          newPod.close();
+       
+        else {
+          Pod oldPod = (Pod) oldRef.get();
+         
+          if (oldPod == null)
+            newPod.close();
+          
+          else {
+            // make sure we don't close Pods that we're still using!
+            fan.sys.File newFile = newPod.loadFile();
+            fan.sys.File oldFile = oldPod.loadFile();
+            
+            if (oldFile != null && newFile != null)
+              if (oldFile.uri.equals(newFile.uri) == false)
+                newPod.close();
+          }
+        }
+      }
+
+      // let allPods be reloaded when needed
+      allPodsList = null;
     }
   }
 
