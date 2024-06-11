@@ -9,7 +9,6 @@ import org.fantom.internal.core.Pod;
 import fan.sys.Env;
 import fan.sys.List;
 import fan.sys.Sys;
-import fan.sys.Func;
 import fan.sys.UnknownPodErr;
 import fan.sys.UnresolvedErr;
 
@@ -32,6 +31,13 @@ public class EquinoxEnv extends Env {
 		Pod pod = pods.get(name);
 		if (pod == null) {
 		  String str = "";
+		  
+		  if (jstub.size() > 0) {
+        for (String p : pods.keySet())
+          str = str + p + " ";
+        throw UnknownPodErr.make(name + " : choose from " + str);
+		  }
+		  
 		  for (String p : pods.keySet()) {
 		    str = str + p + " ";
 		  }

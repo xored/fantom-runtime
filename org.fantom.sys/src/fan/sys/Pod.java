@@ -103,7 +103,7 @@ public class Pod
     {
       e.printStackTrace();
       if (!checked) return null;
-      throw UnknownPodErr.make(name, Err.make(e));
+      throw UnknownPodErr.make(name + " - " + e.getMessage(), Err.make(e));
     }
   }
 
